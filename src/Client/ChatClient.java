@@ -24,23 +24,16 @@ public class ChatClient {
     }
 
     public static void main(String[] args) {
-        ChatClient client = new ChatClient("localhost", 1234);
-
-        if (client == null)
-            throw new NullPointerException("Pas de client");
+        ChatClient client = new ChatClient("localhost", 12345);
 
         client.getLogin();
         client.sendLogin();
 
-        while (true) {
-            client.send();
-            client.receive();
-        }
-    }
+        Thread sender = new Thread(new Sender(client.socket, client.reader, client.writer));
+        Thread receiver = new Thread(new Receiver(client.socket, client.reader, client.writer));
 
-    private void connect() {
-        InetAddress remoteAddress = createAddress();
-        this.socket = connectSocket(remoteAddress);
+        sender.start();
+        receiver.start();
     }
 
     private InetAddress createAddress() {
@@ -63,19 +56,14 @@ public class ChatClient {
         return null;
     }
 
+    private void connect() {
+        InetAddress remoteAddress = createAddress();
+        this.socket = connectSocket(remoteAddress);
+    }
+
     private void openStreams() {
         this.reader = createReader();
         this.writer = createWriter();
-    }
-
-    private BufferedReader createReader() {
-        try {
-            return new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
-        } catch (IOException e) {
-            System.err.println("createReader: opening of the input stream of the socket has failed");
-            System.exit(13);
-        }
-        return null;
     }
 
     private PrintWriter createWriter() {
@@ -100,36 +88,106 @@ public class ChatClient {
         writer.println("LOGIN ".concat(this.pseudo));
     }
 
-    public void closeConnection() {
-        this.writer.close();
+    private BufferedReader createReader() {
         try {
-            this.reader.close();
-            this.socket.close();
+            return new BufferedReader(new InputStreamReader(socket.getInputStream()));
         } catch (IOException e) {
-            System.err.println("closeConnection: Connection could not close properly");
-            System.exit(15);
+            System.err.println("createReader: opening of the input stream of the socket has failed");
+            System.exit(13);
+        }
+        return null;
+    }
+
+    static class Sender implements Runnable {
+        Socket socket;
+        BufferedReader reader;
+        PrintWriter writer;
+
+        public Sender(Socket socket, BufferedReader reader, PrintWriter writer) {
+            this.socket = socket;
+            this.reader = reader;
+            this.writer = writer;
+        }
+
+        @Override
+        public void run() {
+            this.send();
+        }
+
+        public void send() {
+            Scanner scanner = new Scanner(System.in);
+            String line;
+
+            while (socket.isConnected()) {
+                System.out.print("> ");
+                if (scanner.hasNextLine()) {
+                    line = scanner.nextLine();
+                    writer.println("MESSAGE ".concat(line).concat(" envoye"));
+                    writer.flush();
+                } else {
+                    this.closeConnection();
+                    System.exit(17);
+                }
+            }
+        }
+
+        public void closeConnection() {
+            this.writer.close();
+            try {
+                this.reader.close();
+                this.socket.close();
+            } catch (IOException e) {
+                System.err.println("closeConnection: Connection could not close properly");
+                System.exit(15);
+            }
         }
     }
 
-    public void send() {
-        Scanner scanner = new Scanner(System.in);
-        String line = "";
 
-        System.out.print("> ");
-        if (scanner.hasNextLine()) {
-            line = scanner.nextLine();
-            this.writer.println(line);
+    static class Receiver implements Runnable {
+        Socket socket;
+        BufferedReader reader;
+        PrintWriter writer;
+
+        public Receiver(Socket socket, BufferedReader reader, PrintWriter writer) {
+            this.socket = socket;
+            this.reader = reader;
+            this.writer = writer;
+        }
+
+        @Override
+        public void run() {
+            this.receive();
+        }
+
+        public void receive() {
+            String line;
+            while (socket.isConnected()) {
+                try {
+                    if (reader.ready()) {
+                        line = reader.readLine();
+                        System.out.print(line + "\n> ");
+                    }
+                } catch (IOException e) {
+                    closeConnection();
+                    System.exit(16);
+                }
+            }
+        }
+
+        public void closeConnection() {
+            this.writer.close();
+            try {
+                this.reader.close();
+                this.socket.close();
+            } catch (IOException e) {
+                System.err.println("closeConnection: Connection could not close properly");
+                System.exit(15);
+            }
         }
     }
 
-    public void receive() {
-        try {
-            if (this.reader.ready())
-                System.out.println(this.reader.readLine());
-        } catch (IOException e) {
-            System.err.println("receive: problem with the input reader");
-            this.closeConnection();
-            System.exit(16);
-        }
-    }
 }
+
+
+
