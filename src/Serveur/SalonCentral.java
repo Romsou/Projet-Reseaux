@@ -91,24 +91,34 @@ public class SalonCentral {
 
     private void treatAcceptable(SelectionKey key) throws IOException {
         if (key.isAcceptable()) {
+            buffer.clear();
             ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
             client = serverChannel.accept();
             client.configureBlocking(false);
-            client.register(selector, SelectionKey.OP_READ);
+            client.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+            buffer.clear();
         }
     }
 
     private void treatReadable(SelectionKey key) throws IOException {
         if (key.isReadable()) {
+            //ByteBuffer in = ByteBuffer.allocate(1028);
             if (!client.equals(key.channel()))
                 client = (SocketChannel) key.channel();
 
+            cleanBuffer();
             int readBytes = client.read(buffer);
-            if (readBytes >= 0)
+            if (readBytes >= 0) {
                 System.out.println(new String(buffer.array(), StandardCharsets.UTF_8).trim());
+            }
 
-            buffer.clear();
         }
+    }
+
+    private void cleanBuffer() {
+        buffer.clear();
+        buffer.put(new byte[1028]);
+        buffer.clear();
     }
 
     private void close() {
