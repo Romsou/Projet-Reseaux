@@ -24,7 +24,7 @@ public class ChatClient {
     }
 
     public static void main(String[] args) {
-        ChatClient client = new ChatClient("localhost", 1234);
+        ChatClient client = new ChatClient("localhost", 12345);
 
         client.getLogin();
         client.sendLogin();
