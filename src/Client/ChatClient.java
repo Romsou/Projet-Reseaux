@@ -118,15 +118,27 @@ public class ChatClient {
             Scanner scanner = new Scanner(System.in);
             String line;
 
-            while (true) {
-                if (socket.isClosed())
-                    System.exit(17);
+            while (socket.isConnected()) {
                 System.out.print("> ");
                 if (scanner.hasNextLine()) {
                     line = scanner.nextLine();
-                    writer.println(line);
+                    writer.println("MESSAGE ".concat(line).concat(" envoye"));
                     writer.flush();
+                } else {
+                    this.closeConnection();
+                    System.exit(17);
                 }
+            }
+        }
+
+        public void closeConnection() {
+            this.writer.close();
+            try {
+                this.reader.close();
+                this.socket.close();
+            } catch (IOException e) {
+                System.err.println("closeConnection: Connection could not close properly");
+                System.exit(15);
             }
         }
     }
@@ -149,12 +161,14 @@ public class ChatClient {
         }
 
         public void receive() {
-            while (true) {
+            String line;
+            while (socket.isConnected()) {
                 try {
-                    if (reader.ready())
-                        System.out.print(reader.readLine() + "\n> ");
+                    if (reader.ready()) {
+                        line = reader.readLine();
+                        System.out.print(line + "\n> ");
+                    }
                 } catch (IOException e) {
-                    System.err.println("receive: problem with the input reader");
                     closeConnection();
                     System.exit(16);
                 }
