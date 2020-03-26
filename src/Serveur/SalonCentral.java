@@ -19,7 +19,6 @@ public class SalonCentral {
         serverChannel = createServerChannel(port);
         buffer = ByteBuffer.allocate(1028);
         registerChannelInSelector();
-        handleConnections();
     }
 
 
