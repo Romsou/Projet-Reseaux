@@ -7,6 +7,7 @@ import java.nio.channels.SocketChannel;
 
 public class SalonCentral extends AbstractSelectorServer {
 
+
     public SalonCentral(int port) {
         super(port);
     }
@@ -36,7 +37,6 @@ public class SalonCentral extends AbstractSelectorServer {
     @Override
     protected void treatReadable(SelectionKey key) throws IOException {
         if (key.isReadable()) {
-
             if (!client.equals(key.channel()))
                 client = (SocketChannel) key.channel();
 
@@ -45,45 +45,33 @@ public class SalonCentral extends AbstractSelectorServer {
 
             if (readBytes >= 0) {
                 String message = convertBufferToString();
-                String[] messagePart = message.split(" ");
+                String[] messageParts = message.split(" ");
 
-                if (isLogin(messagePart, client)) {
-                    clientPseudos.put(client, messagePart[1]);
-                    System.out.println(message);
-                } else {
-
-                    if (isMessage(messagePart))
-                        System.out.println(message);
-                    else if (!isRegistered(client)) {
-                        sendErrorMessage("ERROR LOGIN aborting chatamu protocol\n");
-                        client.close();
-                        key.cancel();
-                    } else if (!isMessage(messagePart) && clientPseudos.containsKey(client))
-                        sendErrorMessage("ERROR chatamu\n");
-                }
-
-                /*
-                // TODO: Gérer la fermeture du client sans avoir à fermer le serveur
-                if (!isLogin(messagePart) && !isMessage(messagePart)) {
-                    sendErrorMessage("ERROR LOGIN aborting chatamu protocol");
-                    client.close();
-                    System.exit(10);
-                } else if (isLogin(messagePart)) {
-                    clientPseudos.put(client, messagePart[1]);
-                    System.out.println("nom du client: " + clientPseudos.get(client) + " Message: " + message);
-                    //System.out.println(message);
-                } else if (!isMessage(messagePart)) {
-                    sendErrorMessage("ERROR chatamu");
-                } else
-                    System.out.println(message);
-                 */
-
+                if (isLogin(client, messageParts))
+                    registerLogin(client, messageParts);
+                else
+                    treatMessage(client, key, messageParts);
             }
-
         }
     }
 
-    private boolean isLogin(String[] loginParts, SocketChannel client) {
+    private void registerLogin(SocketChannel client, String[] messageParts) {
+        clientPseudos.put(client, messageParts[1]);
+        System.out.println(messageParts.toString());
+    }
+
+    private void treatMessage(SocketChannel client, SelectionKey key, String[] messageParts) throws IOException {
+        if (isMessage(messageParts))
+            System.out.println(messageParts.toString());
+        else if (!isRegistered(client)) {
+            sendErrorMessage("ERROR LOGIN aborting chatamu protocol\n");
+            client.close();
+            key.cancel();
+        } else
+            sendErrorMessage("ERROR chatamu\n");
+    }
+
+    private boolean isLogin(SocketChannel client, String[] loginParts) {
         return loginParts[0].equals("LOGIN") && !clientPseudos.containsKey(client);
     }
 
