@@ -100,7 +100,7 @@ public abstract class AbstractServer {
      *
      * @param message Message to send
      */
-    protected void sendErrorMessage(String message) {
+    protected void sendMessage(String message) {
         try {
             cleanBuffer();
             buffer.put(message.getBytes());

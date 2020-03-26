@@ -2,7 +2,6 @@ package Serveur;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 public class SalonCentral extends AbstractSelectorServer {
@@ -21,12 +20,8 @@ public class SalonCentral extends AbstractSelectorServer {
      */
     @Override
     protected void treatAcceptable(SelectionKey key) throws IOException {
-        if (key.isAcceptable()) {
-            ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
-            client = serverChannel.accept();
-            client.configureBlocking(false);
-            registerChannelInSelector(client, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-        }
+        if (key.isAcceptable())
+            acceptIncomingConnections(key);
     }
 
     /**
@@ -49,21 +44,13 @@ public class SalonCentral extends AbstractSelectorServer {
                 String message = convertBufferToString();
                 String[] messageParts = message.split(" ");
 
-                if (isLogin(client, messageParts))
+                if (isLogin(client, messageParts)) {
                     registerLogin(client, messageParts);
-                else
+                    writeMessage(message);
+                } else
                     treatMessage(client, key, messageParts);
             }
         }
-    }
-
-    private boolean isLogin(SocketChannel client, String[] loginParts) {
-        return loginParts[0].equals("LOGIN") && !clientPseudos.containsKey(client);
-    }
-
-    private void registerLogin(SocketChannel client, String[] messageParts) {
-        clientPseudos.put(client, messageParts[1]);
-        System.out.println(String.join(" ", messageParts));
     }
 
     /**
@@ -82,23 +69,20 @@ public class SalonCentral extends AbstractSelectorServer {
         if (isMessage(messageParts))
             System.out.println(clientPseudos.get(client) + ": " + String.join(" ", messageParts));
         else if (!isRegistered(client)) {
-            sendErrorMessage("ERROR LOGIN aborting chatamu protocol\n");
+            sendMessage("ERROR LOGIN aborting chatamu protocol\n");
             client.close();
             key.cancel();
         } else
-            sendErrorMessage("ERROR chatamu\n");
-    }
-
-    private boolean isMessage(String[] messageParts) {
-        return messageParts[0].equals("MESSAGE") && messageParts[messageParts.length - 1].equals("envoye");
-    }
-
-    private boolean isRegistered(SocketChannel client) {
-        return clientPseudos.containsKey(client);
+            sendMessage("ERROR chatamu\n");
     }
 
     @Override
     protected void treatWritable(SelectionKey key) {
+    }
+
+    @Override
+    protected void writeMessage(String message) {
+        System.out.println(clientPseudos.get(client) + ": " + message);
     }
 
 }
