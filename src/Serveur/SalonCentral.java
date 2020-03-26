@@ -57,12 +57,12 @@ public class SalonCentral extends AbstractSelectorServer {
 
     private void registerLogin(SocketChannel client, String[] messageParts) {
         clientPseudos.put(client, messageParts[1]);
-        System.out.println(messageParts.toString());
+        System.out.println(String.join(" ", messageParts));
     }
 
     private void treatMessage(SocketChannel client, SelectionKey key, String[] messageParts) throws IOException {
         if (isMessage(messageParts))
-            System.out.println(messageParts.toString());
+            System.out.println(clientPseudos.get(client) + ": " + String.join(" ", messageParts));
         else if (!isRegistered(client)) {
             sendErrorMessage("ERROR LOGIN aborting chatamu protocol\n");
             client.close();
