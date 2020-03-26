@@ -7,10 +7,10 @@ import java.nio.channels.SocketChannel;
 
 public class SalonCentral extends AbstractSelectorServer {
 
-
     public SalonCentral(int port) {
         super(port);
     }
+
 
     /**
      * Treats acceptable keys
@@ -27,6 +27,7 @@ public class SalonCentral extends AbstractSelectorServer {
             registerChannelInSelector(client, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
         }
     }
+
 
     /**
      * Treats readable keys
@@ -55,10 +56,17 @@ public class SalonCentral extends AbstractSelectorServer {
         }
     }
 
+
+    private boolean isLogin(SocketChannel client, String[] loginParts) {
+        return loginParts[0].equals("LOGIN") && !clientPseudos.containsKey(client);
+    }
+
+
     private void registerLogin(SocketChannel client, String[] messageParts) {
         clientPseudos.put(client, messageParts[1]);
         System.out.println(String.join(" ", messageParts));
     }
+
 
     private void treatMessage(SocketChannel client, SelectionKey key, String[] messageParts) throws IOException {
         if (isMessage(messageParts))
@@ -71,20 +79,18 @@ public class SalonCentral extends AbstractSelectorServer {
             sendErrorMessage("ERROR chatamu\n");
     }
 
-    private boolean isLogin(SocketChannel client, String[] loginParts) {
-        return loginParts[0].equals("LOGIN") && !clientPseudos.containsKey(client);
-    }
 
     private boolean isMessage(String[] messageParts) {
         return messageParts[0].equals("MESSAGE") && messageParts[messageParts.length - 1].equals("envoye");
     }
 
+
     private boolean isRegistered(SocketChannel client) {
         return clientPseudos.containsKey(client);
     }
 
+
     @Override
     protected void treatWritable(SelectionKey key) {
-
     }
 }
