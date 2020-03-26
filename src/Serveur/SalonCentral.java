@@ -4,44 +4,11 @@ import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Iterator;
 
-public class SalonCentral extends AbstractServer {
+public class SalonCentral extends AbstractSelectorServer {
 
     public SalonCentral(int port) {
         super(port);
-    }
-
-    @Override
-    public void listen() {
-        try {
-            while (selector.select() > 0) {
-                processKeys();
-            }
-        } catch (IOException e) {
-            System.err.println("handleConnections: selector.select() error");
-        }
-    }
-
-    /**
-     * Process the keys selected by the selector
-     */
-    private void processKeys() {
-        Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
-
-        while (keys.hasNext()) {
-            SelectionKey key = keys.next();
-            keys.remove();
-
-            if (key.isValid()) {
-                try {
-                    treatAcceptable(key);
-                    treatReadable(key);
-                } catch (IOException e) {
-                    System.err.println("processKeys: Error");
-                }
-            }
-        }
     }
 
     /**
@@ -50,7 +17,8 @@ public class SalonCentral extends AbstractServer {
      * @param key the key from which we get the channel to treat
      * @throws IOException
      */
-    private void treatAcceptable(SelectionKey key) throws IOException {
+    @Override
+    protected void treatAcceptable(SelectionKey key) throws IOException {
         if (key.isAcceptable()) {
             ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
             client = serverChannel.accept();
@@ -65,7 +33,8 @@ public class SalonCentral extends AbstractServer {
      * @param key the key from which we get the channel to treat
      * @throws IOException
      */
-    private void treatReadable(SelectionKey key) throws IOException {
+    @Override
+    protected void treatReadable(SelectionKey key) throws IOException {
         if (key.isReadable()) {
 
             if (!client.equals(key.channel()))
@@ -78,39 +47,56 @@ public class SalonCentral extends AbstractServer {
                 String message = convertBufferToString();
                 String[] messagePart = message.split(" ");
 
+                if (isLogin(messagePart, client)) {
+                    clientPseudos.put(client, messagePart[1]);
+                    System.out.println(message);
+                } else {
+
+                    if (isMessage(messagePart))
+                        System.out.println(message);
+                    else if (!isRegistered(client)) {
+                        sendErrorMessage("ERROR LOGIN aborting chatamu protocol\n");
+                        client.close();
+                        key.cancel();
+                    } else if (!isMessage(messagePart) && clientPseudos.containsKey(client))
+                        sendErrorMessage("ERROR chatamu\n");
+                }
+
+                /*
                 // TODO: Gérer la fermeture du client sans avoir à fermer le serveur
-                if (!loginIsValid(messagePart) && !messageIsValid(messagePart)) {
+                if (!isLogin(messagePart) && !isMessage(messagePart)) {
                     sendErrorMessage("ERROR LOGIN aborting chatamu protocol");
                     client.close();
                     System.exit(10);
-                } else if (loginIsValid(messagePart)) {
-                    System.out.println(message);
-                } else if (!messageIsValid(messagePart)) {
+                } else if (isLogin(messagePart)) {
+                    clientPseudos.put(client, messagePart[1]);
+                    System.out.println("nom du client: " + clientPseudos.get(client) + " Message: " + message);
+                    //System.out.println(message);
+                } else if (!isMessage(messagePart)) {
                     sendErrorMessage("ERROR chatamu");
                 } else
                     System.out.println(message);
+                 */
+
             }
+
         }
     }
 
-    /**
-     * Checks if a login message has the correct form
-     *
-     * @param loginParts The parts of the login message
-     * @return A boolean that indicates if the login message is valid
-     */
-    private boolean loginIsValid(String[] loginParts) {
-        return loginParts[0].equals("LOGIN");
+    private boolean isLogin(String[] loginParts, SocketChannel client) {
+        return loginParts[0].equals("LOGIN") && !clientPseudos.containsKey(client);
     }
 
-    /**
-     * Checks if a message corresponds to the chatamu protocol
-     *
-     * @param messageParts The parts of the message to check
-     * @return A boolean that indicates if the message is valid
-     */
-    private boolean messageIsValid(String[] messageParts) {
-        return messageParts[0].equals("MESSAGE");
+    private boolean isMessage(String[] messageParts) {
+        return messageParts[0].equals("MESSAGE") && messageParts[messageParts.length - 1].equals("envoye");
     }
 
+    private boolean isRegistered(SocketChannel client) {
+        return clientPseudos.containsKey(client);
+    }
+
+    @Override
+    protected void treatWritable(SelectionKey key) {
+
+    }
 }
