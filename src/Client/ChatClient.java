@@ -161,18 +161,27 @@ public class ChatClient {
         }
 
         public void receive() {
-            String line;
+            String message;
             while (socket.isConnected()) {
                 try {
                     if (reader.ready()) {
-                        line = reader.readLine();
-                        System.out.print(line + "\n> ");
+                        message = reader.readLine();
+                        System.out.print(message + "\n> ");
+
+                        String[] messageParts = message.split(" ");
+                        if (isErrorMessage(messageParts)) {
+                            this.closeConnection();
+                        }
                     }
                 } catch (IOException e) {
                     closeConnection();
                     System.exit(16);
                 }
             }
+        }
+
+        private boolean isErrorMessage(String[] messageParts) {
+            return messageParts[0].equals("ERROR") && messageParts[1].equals("LOGIN");
         }
 
         public void closeConnection() {

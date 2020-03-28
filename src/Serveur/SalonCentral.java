@@ -2,72 +2,38 @@ package Serveur;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Iterator;
 
-public class SalonCentral extends AbstractServer {
+public class SalonCentral extends AbstractSelectorServer {
 
     public SalonCentral(int port) {
         super(port);
     }
 
+    /**
+     * Treats acceptable keys. Accepts incoming connections from a client.
+     * Since the servers's channel is the only one registered with OP_ACCEPT,
+     * It is the only one to ever use this method.
+     *
+     * @param key the key from which we get the channel to treat
+     * @throws IOException
+     */
     @Override
-    public void listen() {
-        try {
-            while (selector.select() > 0) {
-                processKeys();
-            }
-        } catch (IOException e) {
-            System.err.println("handleConnections: selector.select() error");
-        }
+    protected void treatAcceptable(SelectionKey key) throws IOException {
+        if (key.isAcceptable())
+            acceptIncomingConnections(key);
     }
 
     /**
-     * Process the keys selected by the selector
-     */
-    private void processKeys() {
-        Iterator<SelectionKey> keys = selector.selectedKeys().iterator();
-
-        while (keys.hasNext()) {
-            SelectionKey key = keys.next();
-            keys.remove();
-
-            if (key.isValid()) {
-                try {
-                    treatAcceptable(key);
-                    treatReadable(key);
-                } catch (IOException e) {
-                    System.err.println("processKeys: Error");
-                }
-            }
-        }
-    }
-
-    /**
-     * Treats acceptable keys
+     * Treats readable keys. Reads from the buffer and checks the content
+     * of the message to see if there is any protocol violation.
      *
      * @param key the key from which we get the channel to treat
      * @throws IOException
      */
-    private void treatAcceptable(SelectionKey key) throws IOException {
-        if (key.isAcceptable()) {
-            ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
-            client = serverChannel.accept();
-            client.configureBlocking(false);
-            registerChannelInSelector(client, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-        }
-    }
-
-    /**
-     * Treats readable keys
-     *
-     * @param key the key from which we get the channel to treat
-     * @throws IOException
-     */
-    private void treatReadable(SelectionKey key) throws IOException {
+    @Override
+    protected void treatReadable(SelectionKey key) throws IOException {
         if (key.isReadable()) {
-
             if (!client.equals(key.channel()))
                 client = (SocketChannel) key.channel();
 
@@ -76,41 +42,47 @@ public class SalonCentral extends AbstractServer {
 
             if (readBytes >= 0) {
                 String message = convertBufferToString();
-                String[] messagePart = message.split(" ");
+                String[] messageParts = message.split(" ");
 
-                // TODO: Gérer la fermeture du client sans avoir à fermer le serveur
-                if (!loginIsValid(messagePart) && !messageIsValid(messagePart)) {
-                    sendErrorMessage("ERROR LOGIN aborting chatamu protocol");
-                    client.close();
-                    System.exit(10);
-                } else if (loginIsValid(messagePart)) {
-                    System.out.println(message);
-                } else if (!messageIsValid(messagePart)) {
-                    sendErrorMessage("ERROR chatamu");
+                if (isLogin(client, messageParts)) {
+                    registerLogin(client, messageParts);
+                    writeMessage(message);
                 } else
-                    System.out.println(message);
+                    treatMessage(client, key, messageParts);
             }
         }
     }
 
     /**
-     * Checks if a login message has the correct form
+     * Treats the incoming message by applying security checks on it.
+     * If a message has the good format, then it is printed, otherwise
+     * we check whether the client was registered. If he was not, then, then we
+     * send a login error back to the client.
+     * If the client was registered, then it means it is simpply a message error.
      *
-     * @param loginParts The parts of the login message
-     * @return A boolean that indicates if the login message is valid
+     * @param client       The client that we listen
+     * @param key          The key corresponding to the client
+     * @param messageParts A string array containing all parts of the message
+     * @throws IOException
      */
-    private boolean loginIsValid(String[] loginParts) {
-        return loginParts[0].equals("LOGIN");
+    private void treatMessage(SocketChannel client, SelectionKey key, String[] messageParts) throws IOException {
+        if (isMessage(messageParts))
+            System.out.println(clientPseudos.get(client) + ": " + String.join(" ", messageParts));
+        else if (!isRegistered(client)) {
+            sendMessage("ERROR LOGIN aborting chatamu protocol\n");
+            client.close();
+            key.cancel();
+        } else
+            sendMessage("ERROR chatamu\n");
     }
 
-    /**
-     * Checks if a message corresponds to the chatamu protocol
-     *
-     * @param messageParts The parts of the message to check
-     * @return A boolean that indicates if the message is valid
-     */
-    private boolean messageIsValid(String[] messageParts) {
-        return messageParts[0].equals("MESSAGE");
+    @Override
+    protected void treatWritable(SelectionKey key) {
+    }
+
+    @Override
+    protected void writeMessage(String message) {
+        System.out.println(clientPseudos.get(client) + ": " + message);
     }
 
 }
