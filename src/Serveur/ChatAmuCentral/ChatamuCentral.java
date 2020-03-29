@@ -1,4 +1,6 @@
-package Serveur;
+package Serveur.ChatAmuCentral;
+
+import Serveur.AbstractServers.AbstractSelectorServer;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
@@ -15,6 +17,7 @@ public class ChatamuCentral extends AbstractSelectorServer {
         this.clientQueue = new HashMap<>();
     }
 
+
     @Override
     protected void treatAcceptable(SelectionKey key) throws IOException {
         if (key.isAcceptable()) {
@@ -22,6 +25,7 @@ public class ChatamuCentral extends AbstractSelectorServer {
             clientQueue.put(client, new ConcurrentLinkedDeque());
         }
     }
+
 
     @Override
     protected void treatReadable(SelectionKey key) throws IOException {
@@ -38,7 +42,9 @@ public class ChatamuCentral extends AbstractSelectorServer {
 
                 if (isLogin(client, messageParts))
                     registerLogin(client, messageParts);
-                else
+                else if (isServer(client, messageParts)) {
+                    System.out.println("Serveur connecté" + client.getRemoteAddress());
+                } else
                     treatMessage(client, key, messageParts);
             }
         }
@@ -55,6 +61,10 @@ public class ChatamuCentral extends AbstractSelectorServer {
             sendMessage("ERROR chatamu\n");
     }
 
+    protected boolean isServer(SocketChannel client, String[] messageParts) {
+        return messageParts[0].equals("SERVERCONNECT") && messageParts.length == 1;
+    }
+
     @Override
     protected void treatWritable(SelectionKey key) throws IOException {
         if (key.isWritable()) {
@@ -66,11 +76,13 @@ public class ChatamuCentral extends AbstractSelectorServer {
         }
     }
 
+
     @Override
     protected void writeMessage(String message) {
         message = stripProtocolHeaders(message);
         for (SocketChannel remoteClient : clientQueue.keySet())
             clientQueue.get(remoteClient).add(clientPseudos.get(client) + ": " + message + "\n");
     }
+
 
 }
