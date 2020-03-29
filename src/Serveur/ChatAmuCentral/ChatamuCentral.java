@@ -12,7 +12,6 @@ public class ChatamuCentral extends AbstractSelectorServer {
     HashMap<SocketChannel, ConcurrentLinkedDeque> clientQueue;
 
 
-
     public ChatamuCentral(int port) {
         super(port);
         this.clientQueue = new HashMap<>();

@@ -11,7 +11,6 @@ public abstract class AbstractSelectorServer extends AbstractServer {
     protected HashMap<SocketChannel, String> clientPseudos;
 
 
-
     public AbstractSelectorServer(int port) {
         super(port);
         this.clientPseudos = new HashMap<>();
