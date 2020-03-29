@@ -43,12 +43,13 @@ public class ChatamuCentral extends AbstractSelectorServer {
 
                 if (isLogin(client, messageParts))
                     registerLogin(client, messageParts);
-                else
+                else if (isServer(client, messageParts)) {
+                    System.out.println("Serveur connecté" + client.getRemoteAddress());
+                } else
                     treatMessage(client, key, messageParts);
             }
         }
     }
-
 
     private void treatMessage(SocketChannel client, SelectionKey key, String[] messageParts) throws IOException {
         if (isMessage(messageParts))
@@ -61,6 +62,9 @@ public class ChatamuCentral extends AbstractSelectorServer {
             sendMessage("ERROR chatamu\n");
     }
 
+    protected boolean isServer(SocketChannel client, String[] messageParts) {
+        return messageParts[0].equals("SERVERCONNECT") && messageParts.length == 1;
+    }
 
     @Override
     protected void treatWritable(SelectionKey key) throws IOException {
