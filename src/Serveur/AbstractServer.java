@@ -13,6 +13,7 @@ public abstract class AbstractServer {
     public static ByteBuffer buffer;
     public static Selector selector;
 
+
     /**
      * Constructor of AbstractServer. Allows us to create any server we want
      * using selector
@@ -25,6 +26,25 @@ public abstract class AbstractServer {
         buffer = ByteBuffer.allocate(1028);
         registerChannelInSelector(serverChannel, SelectionKey.OP_ACCEPT);
     }
+
+
+    public abstract void listen();
+
+
+    /**
+     * Close the connection
+     */
+    public void close() {
+        try {
+            buffer = null;
+            client.close();
+            serverChannel.close();
+            selector.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * Opens and returns a selector
@@ -40,6 +60,7 @@ public abstract class AbstractServer {
         }
         return null;
     }
+
 
     /**
      * Creates and configure a server channel
@@ -63,6 +84,7 @@ public abstract class AbstractServer {
         return null;
     }
 
+
     /**
      * Registers a channel in a selector
      *
@@ -77,6 +99,7 @@ public abstract class AbstractServer {
         }
     }
 
+
     /**
      * Cleans the buffer to avoid problems
      */
@@ -86,6 +109,7 @@ public abstract class AbstractServer {
         buffer.clear();
     }
 
+
     /**
      * Convert buffer's content into a String for further processing
      *
@@ -94,6 +118,7 @@ public abstract class AbstractServer {
     protected String convertBufferToString() {
         return new String(buffer.array(), StandardCharsets.UTF_8).trim();
     }
+
 
     /**
      * Sends an error message to the client
@@ -111,25 +136,5 @@ public abstract class AbstractServer {
         }
     }
 
-    /**
-     * Close the connection
-     */
-    public void close() {
-        try {
-            buffer = null;
-            client.close();
-            serverChannel.close();
-            selector.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    //------- abstract methods --------//
-
-    /**
-     * Abstract method to override. Used to start the listening of the server
-     */
-    public abstract void listen();
 
 }

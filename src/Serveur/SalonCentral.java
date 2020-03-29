@@ -6,9 +6,11 @@ import java.nio.channels.SocketChannel;
 
 public class SalonCentral extends AbstractSelectorServer {
 
+
     public SalonCentral(int port) {
         super(port);
     }
+
 
     /**
      * Treats acceptable keys. Accepts incoming connections from a client.
@@ -23,6 +25,7 @@ public class SalonCentral extends AbstractSelectorServer {
         if (key.isAcceptable())
             acceptIncomingConnections(key);
     }
+
 
     /**
      * Treats readable keys. Reads from the buffer and checks the content
@@ -53,6 +56,7 @@ public class SalonCentral extends AbstractSelectorServer {
         }
     }
 
+
     /**
      * Treats the incoming message by applying security checks on it.
      * If a message has the good format, then it is printed, otherwise
@@ -76,9 +80,11 @@ public class SalonCentral extends AbstractSelectorServer {
             sendMessage("ERROR chatamu\n");
     }
 
+
     @Override
     protected void treatWritable(SelectionKey key) {
     }
+
 
     @Override
     protected void writeMessage(String message) {

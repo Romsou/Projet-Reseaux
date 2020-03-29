@@ -10,10 +10,12 @@ public class ChatamuCentral extends AbstractSelectorServer {
     HashMap<SocketChannel, ConcurrentLinkedDeque> clientQueue;
 
 
+
     public ChatamuCentral(int port) {
         super(port);
         this.clientQueue = new HashMap<>();
     }
+
 
     @Override
     protected void treatAcceptable(SelectionKey key) throws IOException {
@@ -22,6 +24,7 @@ public class ChatamuCentral extends AbstractSelectorServer {
             clientQueue.put(client, new ConcurrentLinkedDeque());
         }
     }
+
 
     @Override
     protected void treatReadable(SelectionKey key) throws IOException {
@@ -44,6 +47,7 @@ public class ChatamuCentral extends AbstractSelectorServer {
         }
     }
 
+
     private void treatMessage(SocketChannel client, SelectionKey key, String[] messageParts) throws IOException {
         if (isMessage(messageParts))
             writeMessage(String.join(" ", messageParts));
@@ -54,6 +58,7 @@ public class ChatamuCentral extends AbstractSelectorServer {
         } else
             sendMessage("ERROR chatamu\n");
     }
+
 
     @Override
     protected void treatWritable(SelectionKey key) throws IOException {
@@ -66,11 +71,13 @@ public class ChatamuCentral extends AbstractSelectorServer {
         }
     }
 
+
     @Override
     protected void writeMessage(String message) {
         message = stripProtocolHeaders(message);
         for (SocketChannel remoteClient : clientQueue.keySet())
             clientQueue.get(remoteClient).add(clientPseudos.get(client) + ": " + message + "\n");
     }
+
 
 }
