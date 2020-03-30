@@ -5,7 +5,6 @@ import Serveur.AbstractServers.AbstractSelectorServer;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -13,29 +12,33 @@ public class SlaveServer extends AbstractSelectorServer {
     HashMap<SocketChannel, ConcurrentLinkedDeque> clientQueue;
     private SocketChannel masterServer;
 
+
     public SlaveServer(int port) {
         super(port);
-        this.masterServer = new ArrayList<>(10);
         this.clientQueue = new HashMap<>();
     }
+
 
     @Override
     protected void writeMessageToClients(String message) {
         message = stripProtocolHeaders(message);
+        System.out.println(message);
         for (SocketChannel remoteClient : clientQueue.keySet())
             clientQueue.get(remoteClient).add(clientPseudos.get(client) + ": " + message + "\n");
     }
 
+
     @Override
-    protected void treatReadable(SelectionKey key) throws IOException {
+    protected void treatAcceptable(SelectionKey key) throws IOException {
         if (key.isAcceptable()) {
             acceptIncomingConnections(key);
             clientQueue.put(client, new ConcurrentLinkedDeque());
         }
     }
 
+
     @Override
-    protected void treatAcceptable(SelectionKey key) throws IOException {
+    protected void treatReadable(SelectionKey key) throws IOException {
         if (key.isReadable()) {
             if (!client.equals(key.channel()))
                 client = (SocketChannel) key.channel();
@@ -80,6 +83,23 @@ public class SlaveServer extends AbstractSelectorServer {
     protected boolean isServer(SocketChannel client, String[] messageParts) {
         return messageParts[0].equals("SERVERCONNECT") && messageParts.length == 1;
     }
+
+    //TODO: Erase
+    protected int sendMessage(SocketChannel client, String message) {
+        try {
+
+            cleanBuffer();
+            buffer.put(message.getBytes());
+            buffer.flip();
+            return client.write(buffer);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
+
 
     @Override
     protected void treatWritable(SelectionKey key) throws IOException {
