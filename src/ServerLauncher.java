@@ -1,9 +1,9 @@
-import Serveur.AbstractServers.AbstractSelectorServer;
-import Serveur.Federation.SlaveServer;
+import Serveur.AbstractServers.AbstractDefaultSelectorServer;
+import Serveur.SalonCentral.SalonCentral;
 
 public class ServerLauncher {
     public static void main(String[] args) {
-        AbstractSelectorServer salon = new SlaveServer(12345);
+        AbstractDefaultSelectorServer salon = new SalonCentral(12345);
         salon.listen();
         salon.close();
     }

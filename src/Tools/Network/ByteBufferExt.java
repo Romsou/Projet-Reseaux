@@ -50,4 +50,12 @@ public class ByteBufferExt {
         return buffer;
     }
 
+
+    public void clear() {
+        buffer.clear();
+    }
+
+    public byte[] array() {
+        return buffer.array();
+    }
 }

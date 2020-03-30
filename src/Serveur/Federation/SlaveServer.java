@@ -43,11 +43,11 @@ public class SlaveServer extends AbstractSelectorServer {
             if (!client.equals(key.channel()))
                 client = (SocketChannel) key.channel();
 
-            cleanBuffer();
-            int readBytes = client.read(buffer);
+            buffer.cleanBuffer();
+            int readBytes = client.read(buffer.getBuffer());
 
             if (readBytes >= 0) {
-                String message = convertBufferToString();
+                String message = buffer.convertBufferToString();
                 String[] messageParts = message.split(" ");
 
                 if (isLogin(client, messageParts))
@@ -88,10 +88,10 @@ public class SlaveServer extends AbstractSelectorServer {
     protected int sendMessage(SocketChannel client, String message) {
         try {
 
-            cleanBuffer();
+            buffer.cleanBuffer();
             buffer.put(message.getBytes());
             buffer.flip();
-            return client.write(buffer);
+            return client.write(buffer.getBuffer());
 
         } catch (IOException e) {
             e.printStackTrace();

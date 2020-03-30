@@ -1,6 +1,6 @@
 package Serveur.ChatAmuCentral;
 
-import Serveur.AbstractServers.AbstractSelectorServer;
+import Serveur.AbstractServers.AbstractDefaultSelectorServer;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
@@ -8,7 +8,7 @@ import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-public class ChatamuCentral extends AbstractSelectorServer {
+public class ChatamuCentral extends AbstractDefaultSelectorServer {
     private HashMap<SocketChannel, ConcurrentLinkedDeque> clientQueue;
 
 
@@ -28,41 +28,8 @@ public class ChatamuCentral extends AbstractSelectorServer {
 
 
     @Override
-    protected void treatReadable(SelectionKey key) throws IOException {
-        if (key.isReadable()) {
-            if (!client.equals(key.channel()))
-                client = (SocketChannel) key.channel();
-
-            cleanBuffer();
-            int readBytes = client.read(buffer);
-
-            if (readBytes >= 0) {
-                String message = convertBufferToString();
-                String[] messageParts = message.split(" ");
-
-                if (isLogin(client, messageParts))
-                    registerLogin(client, messageParts);
-                else
-                    treatMessage(client, key, messageParts);
-            }
-        }
-    }
-
-    private void treatMessage(SocketChannel client, SelectionKey key, String[] messageParts) throws IOException {
-        if (isMessage(messageParts))
-            writeMessageToClients(String.join(" ", messageParts));
-        else if (!isRegistered(client)) {
-            sendMessage("ERROR LOGIN aborting chatamu protocol\n");
-            client.close();
-            key.cancel();
-        } else
-            sendMessage("ERROR chatamu\n");
-    }
-
-
-    @Override
-    protected void treatWritable(SelectionKey key) throws IOException {
-        if (key.isWritable()) {
+    protected void treatWritable(SelectionKey key) {
+        if (key.isValid() && key.isWritable()) {
             if (client != null)
                 client = (SocketChannel) key.channel();
 
