@@ -96,7 +96,7 @@ public abstract class AbstractSelectorServer extends AbstractServer {
     }
 
 
-    protected abstract void writeMessage(String message);
+    protected abstract void writeMessageToClients(String message);
 
 
     protected abstract void treatReadable(SelectionKey key) throws IOException;

@@ -51,7 +51,7 @@ public class SalonCentral extends AbstractSelectorServer {
 
                 if (isLogin(client, messageParts)) {
                     registerLogin(client, messageParts);
-                    writeMessage(message);
+                    writeMessageToClients(message);
                 } else
                     treatMessage(client, key, messageParts);
             }
@@ -89,7 +89,7 @@ public class SalonCentral extends AbstractSelectorServer {
 
 
     @Override
-    protected void writeMessage(String message) {
+    protected void writeMessageToClients(String message) {
         System.out.println(clientPseudos.get(client) + ": " + message);
     }
 

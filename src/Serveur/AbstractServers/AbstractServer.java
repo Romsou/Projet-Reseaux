@@ -136,5 +136,15 @@ public abstract class AbstractServer {
         }
     }
 
+    protected void sendMessage(SocketChannel client, String message) {
+        try {
+            cleanBuffer();
+            buffer.put(message.getBytes());
+            buffer.flip();
+            client.write(buffer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }
