@@ -1,5 +1,6 @@
 package Serveur.AbstractServers;
 
+import Protocol.ProtocolChecker;
 import Tools.Network.ByteBufferExt;
 
 import java.io.IOException;
@@ -13,6 +14,7 @@ public abstract class AbstractSelectorServer extends AbstractServer {
     public static SocketChannel client;
     public static ByteBufferExt buffer;
     public static Selector selector;
+    private static ProtocolChecker protocolChecker;
 
 
     public AbstractSelectorServer(int port) {
@@ -20,6 +22,7 @@ public abstract class AbstractSelectorServer extends AbstractServer {
         selector = openSelector();
         buffer = new ByteBufferExt();
         this.clientPseudos = new HashMap<>();
+        protocolChecker = new ProtocolChecker();
     }
 
     /**
@@ -86,7 +89,6 @@ public abstract class AbstractSelectorServer extends AbstractServer {
             }
         }
     }
-
 
     protected void treatKey(SelectionKey key) {
         try {
@@ -161,7 +163,7 @@ public abstract class AbstractSelectorServer extends AbstractServer {
             try {
                 client.close();
             } catch (IOException ex) {
-                System.err.println("sendMessage: Problème de fermeture avec  le client");
+                System.err.println("sendMessage: Problème de fermeture avec le client");
             }
             System.out.println("Connexion terminée");
         }

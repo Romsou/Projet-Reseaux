@@ -11,6 +11,14 @@ public abstract class AbstractDefaultSelectorServer extends AbstractSelectorServ
         super(port);
     }
 
+
+    /**
+     * Treats readable keys. Reads from the buffer and checks the content
+     * of the message to see if there is any protocol violation.
+     *
+     * @param key the key from which we get the channel to treat
+     * @throws IOException
+     */
     @Override
     protected void treatReadable(SelectionKey key) throws IOException {
         if (key.isReadable()) {
@@ -32,7 +40,19 @@ public abstract class AbstractDefaultSelectorServer extends AbstractSelectorServ
         }
     }
 
-    private void treatMessage(SelectionKey key, String[] messageParts) throws IOException {
+
+    /**
+     * Treats the incoming message by applying security checks on it.
+     * If a message has the good format, then it is printed, otherwise
+     * we check whether the client was registered. If he was not, then, then we
+     * send a login error back to the client.
+     * If the client was registered, then it means it is simpply a message error.
+     *
+     * @param key          The key corresponding to the client
+     * @param messageParts A string array containing all parts of the message
+     * @throws IOException
+     */
+    protected void treatMessage(SelectionKey key, String[] messageParts) throws IOException {
         if (isMessage(messageParts))
             writeMessageToClients(String.join(" ", messageParts));
         else if (!isRegistered(client)) {
