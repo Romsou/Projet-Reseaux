@@ -1,11 +1,12 @@
 package Serveur.Federation;
 
+import Tools.Network.ByteBufferExt;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -13,6 +14,7 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 
@@ -21,18 +23,22 @@ public abstract class AbstractMasterServer {
     private static final String DEFAULT_CONFIG_FILE = "src//Config/pairs.cfg";
 
     private ConcurrentLinkedQueue<String> master;
-    private HashMap<SocketChannel, String> clientsPseudo;
+    private HashMap<SocketChannel, String> clientsPseudos;
     private Selector clientSelector;
     private List<SocketChannel> servers;
-    private ByteBuffer buffer;
+    private ByteBufferExt buffer;
+
+    private HashMap<SocketChannel, ConcurrentLinkedDeque> clientQueue;
+    private SocketChannel client;
 
 
     public AbstractMasterServer() {
-        this.clientsPseudo = new HashMap<>();
+        this.clientsPseudos = new HashMap<>();
         this.master = new ConcurrentLinkedQueue<>();
         this.clientSelector = openSelector();
         this.servers = new ArrayList<>(15);
-        this.buffer = ByteBuffer.allocate(1028);
+        this.buffer = new ByteBufferExt();
+        this.clientQueue = new HashMap<>();
     }
 
     protected Selector openSelector() {
@@ -86,22 +92,16 @@ public abstract class AbstractMasterServer {
     protected int sendMessage(SocketChannel client, String message) {
         try {
 
-            cleanBuffer();
+            buffer.cleanBuffer();
             buffer.put(message.getBytes());
             buffer.flip();
-            return client.write(buffer);
+            return client.write(buffer.getBuffer());
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         return -1;
-    }
-
-    protected void cleanBuffer() {
-        buffer.clear();
-        buffer.put(new byte[1028]);
-        buffer.clear();
     }
 
     protected void registerChannelInSelector(SocketChannel client) {
@@ -112,6 +112,11 @@ public abstract class AbstractMasterServer {
         } catch (ClosedChannelException e) {
             e.printStackTrace();
         }
+    }
+
+
+    public void listen() throws IOException {
+
     }
 
 
