@@ -6,7 +6,6 @@ import java.nio.channels.SocketChannel;
 
 public abstract class AbstractDefaultSelectorServer extends AbstractSelectorServer {
 
-
     public AbstractDefaultSelectorServer(int port) {
         super(port);
     }
@@ -53,7 +52,7 @@ public abstract class AbstractDefaultSelectorServer extends AbstractSelectorServ
      * @throws IOException
      */
     protected void treatMessage(SelectionKey key, String[] messageParts) throws IOException {
-        if (isMessage(messageParts))
+        if (protocolHandler.isMessage(messageParts))
             writeMessageToClients(String.join(" ", messageParts));
         else if (!isRegistered(client)) {
             sendMessage("ERROR LOGIN aborting chatamu protocol\n");
