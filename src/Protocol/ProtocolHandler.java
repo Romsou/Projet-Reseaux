@@ -1,30 +1,35 @@
 package Protocol;
 
 public class ProtocolHandler {
-    private final String MESSAGE_HEADER = "MESSAGE";
-    private final String MESSAGE_FOOTER = "envoye";
-    private final String LOGIN_HEADER = "LOGIN";
+    private static final String MESSAGE_HEADER = "MESSAGE";
+    private static final String MESSAGE_FOOTER = "envoye";
+    private static final String LOGIN_HEADER = "LOGIN";
+    private static final String SERVERCONNECT_HEADER = "SERVERCONNECT";
 
 
-    public boolean isMessageHeader(String message) {
+    public static boolean isMessageHeader(String message) {
         return message.equals(MESSAGE_HEADER);
     }
 
 
-    public boolean isMessageFooter(String message) {
+    public static boolean isMessageFooter(String message) {
         return message.equals(MESSAGE_FOOTER);
     }
 
 
-    public boolean isMessage(String[] messageParts) {
+    public static boolean isMessage(String[] messageParts) {
         return isMessageHeader(messageParts[0]) && isMessageFooter(messageParts[messageParts.length - 1]);
     }
 
 
-    public boolean isLoginHeader(String message) {
+    public static boolean isLoginHeader(String message) {
         return message.equals(LOGIN_HEADER);
     }
 
+
+    public static boolean isServerConnection(String message) {
+        return message.equals(SERVERCONNECT_HEADER);
+    }
 
     public String stripProtocolHeaders(String message) {
         String[] messageParts = message.split(" ");
@@ -34,7 +39,7 @@ public class ProtocolHandler {
         else if (isMessageHeader(messageParts[0]))
             return message.substring("MESSAGE".length(), message.length() - "envoye".length()).strip();
         else
-            return null;
+            return message;
     }
 
 }

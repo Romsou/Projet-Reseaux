@@ -41,6 +41,7 @@ public class ChatamuCentral extends AbstractDefaultSelectorServer {
 
     @Override
     protected void writeMessageToClients(String message) {
+        System.out.println("Message envoyé: " + message);
         message = protocolHandler.stripProtocolHeaders(message);
         for (SocketChannel remoteClient : clientQueue.keySet())
             clientQueue.get(remoteClient).add(clientPseudos.get(client) + ": " + message + "\n");

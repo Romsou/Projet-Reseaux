@@ -1,5 +1,7 @@
 package Serveur.AbstractServers;
 
+import Protocol.ProtocolHandler;
+
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -31,9 +33,17 @@ public abstract class AbstractDefaultSelectorServer extends AbstractSelectorServ
                 String message = buffer.convertBufferToString();
                 String[] messageParts = message.split(" ");
 
-                if (isLogin(client, messageParts))
+                //TODO: erase !
+                System.out.println(message);
+
+
+                if (isLogin(client, messageParts)) {
                     registerLogin(client, messageParts);
-                else
+                    return;
+                } else if (ProtocolHandler.isServerConnection(message)) {
+                    System.out.println("Connexion serveur détectée");
+                    registerLogin(client, "LOGIN server".split(" "));
+                } else
                     treatMessage(key, messageParts);
             }
         }
@@ -52,9 +62,10 @@ public abstract class AbstractDefaultSelectorServer extends AbstractSelectorServ
      * @throws IOException
      */
     protected void treatMessage(SelectionKey key, String[] messageParts) throws IOException {
-        if (protocolHandler.isMessage(messageParts))
+        if (ProtocolHandler.isMessage(messageParts))
             writeMessageToClients(String.join(" ", messageParts));
         else if (!isRegistered(client)) {
+            System.out.println("Message d'erreur lu: " + String.join(" ", messageParts));
             sendMessage("ERROR LOGIN aborting chatamu protocol\n");
             client.close();
             key.cancel();

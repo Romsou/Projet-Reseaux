@@ -7,6 +7,7 @@ public class FederationLauncher {
         MasterServer server = new MasterServer();
         server.configure();
         server.init();
+        server.printKeys();
         server.listen();
         server.close();
     }
