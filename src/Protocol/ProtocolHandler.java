@@ -1,10 +1,12 @@
 package Protocol;
 
 public class ProtocolHandler {
-    private static final String MESSAGE_HEADER = "MESSAGE";
-    private static final String MESSAGE_FOOTER = "envoye";
-    private static final String LOGIN_HEADER = "LOGIN";
-    private static final String SERVERCONNECT_HEADER = "SERVERCONNECT";
+    public static final String LOGIN_HEADER = "LOGIN";
+    public static final String MESSAGE_HEADER = "MESSAGE";
+    public static final String MESSAGE_FOOTER = "envoye";
+    public static final String ERROR_LOGIN = "ERROR LOGIN aborting chatamu protocol";
+    public static final String ERROR_MESSAGE = "ERROR chatmau";
+    public static final String SERVERCONNECT_HEADER = "SERVERCONNECT";
 
 
     public static boolean isMessageHeader(String message) {
@@ -42,4 +44,7 @@ public class ProtocolHandler {
             return message;
     }
 
+    public String addProtocolHeaders(String message) {
+        return "MESSAGE ".concat(message).concat(" envoye");
+    }
 }

@@ -1,5 +1,7 @@
 package Client;
 
+import Protocol.ProtocolHandler;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -116,13 +118,13 @@ public class ChatClient {
 
         public void send() {
             Scanner scanner = new Scanner(System.in);
-            String line;
+            String message;
 
             while (socket.isConnected()) {
                 System.out.print("> ");
                 if (scanner.hasNextLine()) {
-                    line = scanner.nextLine();
-                    writer.println("MESSAGE ".concat(line).concat(" envoye"));
+                    message = scanner.nextLine();
+                    writer.println(new ProtocolHandler().addProtocolHeaders(message));
                     writer.flush();
                 } else {
                     this.closeConnection();
@@ -166,12 +168,12 @@ public class ChatClient {
                 try {
                     if (reader.ready()) {
                         message = reader.readLine();
-                        System.out.print(message + "\n> ");
 
                         String[] messageParts = message.split(" ");
                         if (isErrorMessage(messageParts)) {
                             this.closeConnection();
                         }
+                        System.out.print(new ProtocolHandler().stripProtocolHeaders(message) + "\n> ");
                     }
                 } catch (IOException e) {
                     closeConnection();

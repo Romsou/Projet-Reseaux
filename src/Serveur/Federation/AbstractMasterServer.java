@@ -28,7 +28,6 @@ public abstract class AbstractMasterServer {
 
     private HashMap<SocketChannel, ConcurrentLinkedQueue<String>> clientQueue;
     private ServerSocketChannel serverChannel;
-    private SocketChannel client;
 
 
     public AbstractMasterServer(int port) throws IOException {

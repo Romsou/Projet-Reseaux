@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ChatamuCentral extends AbstractDefaultSelectorServer {
-    private HashMap<SocketChannel, ConcurrentLinkedDeque> clientQueue;
+    protected HashMap<SocketChannel, ConcurrentLinkedQueue<String>> clientQueue;
 
 
     public ChatamuCentral(int port) {
@@ -22,7 +22,7 @@ public class ChatamuCentral extends AbstractDefaultSelectorServer {
     protected void treatAcceptable(SelectionKey key) throws IOException {
         if (key.isAcceptable()) {
             acceptIncomingConnections(key);
-            clientQueue.put(client, new ConcurrentLinkedDeque());
+            clientQueue.put(client, new ConcurrentLinkedQueue<>());
         }
     }
 
@@ -34,18 +34,23 @@ public class ChatamuCentral extends AbstractDefaultSelectorServer {
                 client = (SocketChannel) key.channel();
 
             if (!clientQueue.get(client).isEmpty())
-                sendMessage((String) clientQueue.get(client).pop());
+                sendMessage(client, clientQueue.get(client).poll());
         }
     }
-
 
     @Override
     protected void writeMessageToClients(String message) {
         System.out.println("Message envoyé: " + message);
-        message = protocolHandler.stripProtocolHeaders(message);
-        for (SocketChannel remoteClient : clientQueue.keySet())
-            clientQueue.get(remoteClient).add(clientPseudos.get(client) + ": " + message + "\n");
+        //message = protocolHandler.stripProtocolHeaders(message);
+        broadcast(message);
     }
 
+    protected void broadcast(String message) {
+        for (SocketChannel remoteClient : clientQueue.keySet())
+            appendToClientQueue(remoteClient, message);
+    }
 
+    protected void appendToClientQueue(SocketChannel client, String message) {
+        clientQueue.get(client).add(message + "\n");
+    }
 }
