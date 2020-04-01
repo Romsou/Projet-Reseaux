@@ -5,6 +5,7 @@ public class ServerLauncher {
         //AbstractDefaultSelectorServer salon = new ChatamuCentral(12345);
         Runnable server = new SlaveServer(12345);
 
+
         Thread slave = new Thread(server);
         slave.start();
         //salon.listen();

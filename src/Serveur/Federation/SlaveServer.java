@@ -36,6 +36,7 @@ public class SlaveServer extends ChatamuCentral implements Runnable {
 
                 // Si un serveur se connecte on l'enregistre
                 if (ProtocolHandler.isServerConnection(message)) {
+                    System.out.println("Client connecté: " + client);
                     masterServers.put(client, client);
                     return;
                 }
@@ -49,16 +50,12 @@ public class SlaveServer extends ChatamuCentral implements Runnable {
                 }
 
                 if (!masterServers.keySet().isEmpty()) {
-                    System.out.println("masterServers not empty");
                     // Si on reçoit un message qui ne provient pas d' serveur maitre, on l'envoit au serveur maitre
                     if (ProtocolHandler.isMessage(messageParts) && !masterServers.containsKey(client)) {
                         for (SocketChannel masterServer : masterServers.keySet()) {
                             ProtocolHandler protocolHandler = new ProtocolHandler();
-                            message = protocolHandler.stripProtocolHeaders(message);
                             message = addPseudoToMessage(client, clientPseudos.get(client));
-                            message = protocolHandler.addMessageHeaders(message);
                             sendMessage(masterServer, message);
-
                         }
                         return;
                     }
@@ -72,9 +69,7 @@ public class SlaveServer extends ChatamuCentral implements Runnable {
 
                 if (masterServers.keySet().isEmpty()) {
                     if (ProtocolHandler.isMessage(messageParts)) {
-                        message = protocolHandler.stripProtocolHeaders(message);
                         message = addPseudoToMessage(client, message);
-                        message = protocolHandler.addMessageHeaders(message);
                         broadcast(message);
                         return;
                     }
