@@ -50,7 +50,7 @@ public class ProtocolHandler {
             return message;
     }
 
-    public String addProtocolHeaders(String message) {
+    public String addMessageHeaders(String message) {
         return "MESSAGE ".concat(message).concat(" envoye");
     }
 }

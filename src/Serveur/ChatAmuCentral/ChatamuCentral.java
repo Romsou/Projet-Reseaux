@@ -33,8 +33,11 @@ public class ChatamuCentral extends AbstractDefaultSelectorServer {
             if (client != null)
                 client = (SocketChannel) key.channel();
 
-            if (!clientQueue.get(client).isEmpty())
-                sendMessage(client, clientQueue.get(client).poll());
+            if (clientQueue.containsKey(client) && !clientQueue.get(client).isEmpty()) {
+                String message = clientQueue.get(client).poll();
+                System.out.println(message);
+                sendMessage(client, message);
+            }
         }
     }
 

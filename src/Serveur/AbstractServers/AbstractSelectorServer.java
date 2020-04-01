@@ -162,12 +162,15 @@ public abstract class AbstractSelectorServer extends AbstractServer {
 
 
     public String addPseudoToMessage(SocketChannel client, String message) {
+        return clientPseudos.get(client) + ": " + message;
+        /*
         String[] messageParts = message.split(" ");
-        String messageWithPseudo = messageParts[0] + " " + clientPseudos.get(client) + ":";
+        String messageWithPseudo = clientPseudos.get(client) + ":" + messageParts[0];
         for (int i = 1; i < messageParts.length; i++) {
             messageWithPseudo += " " + messageParts[i];
         }
-        return messageWithPseudo + "\n";
+        return messageWithPseudo;
+        */
     }
 
     protected abstract void treatAcceptable(SelectionKey key) throws IOException;

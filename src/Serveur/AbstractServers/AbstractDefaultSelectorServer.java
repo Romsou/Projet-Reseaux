@@ -65,7 +65,6 @@ public abstract class AbstractDefaultSelectorServer extends AbstractSelectorServ
         if (ProtocolHandler.isMessage(messageParts))
             writeMessageToClients(String.join(" ", messageParts));
         else if (!isRegistered(client)) {
-            System.out.println("Message d'erreur lu: " + String.join(" ", messageParts));
             sendMessage(client, "ERROR LOGIN aborting chatamu protocol\n");
             client.close();
             key.cancel();

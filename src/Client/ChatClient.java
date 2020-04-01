@@ -172,7 +172,7 @@ class Sender implements Runnable {
             System.out.print("> ");
             if (scanner.hasNextLine()) {
                 message = scanner.nextLine();
-                client.writer.println(new ProtocolHandler().addProtocolHeaders(message));
+                client.writer.println(new ProtocolHandler().addMessageHeaders(message));
                 client.writer.flush();
             } else {
                 client.closeConnection();
@@ -210,6 +210,7 @@ class Receiver implements Runnable {
                     String[] messageParts = message.split(" ");
                     if (ProtocolHandler.isLoginError(messageParts)) {
                         client.closeConnection();
+                        return;
                     }
                     System.out.print(new ProtocolHandler().stripProtocolHeaders(message) + "\n> ");
                 }
