@@ -1,6 +1,5 @@
 package Serveur.Federation;
 
-import Protocol.ProtocolHandler;
 import Serveur.ChatAmuCentral.ChatamuCentral;
 
 import java.io.BufferedReader;
@@ -19,7 +18,7 @@ public class ProtoMasterServer extends ChatamuCentral {
 
     private ConcurrentLinkedQueue<String> master;
     private List<InetSocketAddress> remoteAddresses;
-
+    private Thread slaveServer;
 
     public ProtoMasterServer(int port) {
         super(port);
@@ -52,11 +51,16 @@ public class ProtoMasterServer extends ChatamuCentral {
         String[] lineParts = line.split(" ");
         String host = lineParts[2];
         int port = Integer.parseInt(lineParts[3]);
-        System.out.printf("Connexion à l'höte %s sur le port %d\n", host, port);
-        remoteAddresses.add(new InetSocketAddress(host, port));
+
+        if (lineParts[0].equals("master"))
+            slaveServer = new Thread(new SlaveServer(port));
+        else
+            remoteAddresses.add(new InetSocketAddress(host, port));
     }
 
     public void init() throws IOException {
+        slaveServer.start();
+
         for (InetSocketAddress address : remoteAddresses) {
             SocketChannel server = SocketChannel.open(address);
             server.configureBlocking(false);
@@ -69,56 +73,5 @@ public class ProtoMasterServer extends ChatamuCentral {
         }
     }
 
-    @Override
-    protected void treatReadable(SelectionKey key) throws IOException {
-        if (key.isReadable()) {
-            SocketChannel client = (SocketChannel) key.channel();
-
-            int readBytes = buffer.read(client);
-            if (readBytes > 0) {
-                String message = buffer.convertBufferToString();
-                String[] messageParts = message.split(" ");
-
-                if (isLogin(client, messageParts)) {
-                    registerLogin(client, messageParts);
-                    return;
-                }
-
-                if (ProtocolHandler.isMessage(messageParts)) {
-                    master.add(addPseudoToMessage(client, message));
-                    broadcast(master.peek());
-                    return;
-                }
-
-                if (!isRegistered(client)) {
-                    //System.out.println("Message d'erreur lu: " + String.join(" ", messageParts));
-                    sendMessage(client, ProtocolHandler.ERROR_LOGIN.concat("\n"));
-                    client.close();
-                    key.cancel();
-                    return;
-                }
-
-                sendMessage(client, ProtocolHandler.ERROR_MESSAGE.concat("\n"));
-            }
-        }
-    }
-
-    @Override
-    protected void treatWritable(SelectionKey key) {
-        if (key.isValid() && key.isWritable()) {
-            SocketChannel client = (SocketChannel) key.channel();
-
-            if (!clientQueue.get(client).isEmpty()) {
-                System.out.println("Message ecrit: " + clientQueue.get(client).peek());
-                sendMessage(client, clientQueue.get(client).poll());
-            }
-        }
-    }
-
-    @Override
-    protected void processKeys() {
-        super.processKeys();
-        master.poll();
-    }
 
 }
