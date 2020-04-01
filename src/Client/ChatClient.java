@@ -38,6 +38,11 @@ public class ChatClient {
         receiver.start();
     }
 
+    /**
+     * Create the server address and handle possible errors
+     *
+     * @return An InetAddress corresponding to the distant server
+     */
     private InetAddress createAddress() {
         try {
             return InetAddress.getByName(this.remoteHost);
@@ -48,6 +53,12 @@ public class ChatClient {
         return null;
     }
 
+    /**
+     * Connect the client to the remote server
+     *
+     * @param remoteAddress The address of the server we connect to
+     * @return A socket corresponding to the conection with the server
+     */
     private Socket connectSocket(InetAddress remoteAddress) {
         try {
             return new Socket(remoteAddress, this.remotePort);
@@ -58,16 +69,27 @@ public class ChatClient {
         return null;
     }
 
+    /**
+     * Creates the address of the server and connect to it
+     */
     private void connect() {
         InetAddress remoteAddress = createAddress();
         this.socket = connectSocket(remoteAddress);
     }
 
+    /**
+     * Open input and output streams to read and write from and to the server
+     */
     private void openStreams() {
         this.reader = createReader();
         this.writer = createWriter();
     }
 
+    /**
+     * Creates an output stream to write to the server and handles possibles errors
+     *
+     * @return A PrintWriter corresponding to the output stream
+     */
     private PrintWriter createWriter() {
         try {
             return new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
@@ -78,18 +100,29 @@ public class ChatClient {
         return null;
     }
 
+    /**
+     * Ask for the user's login
+     */
     public void getLogin() {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Entrez login: ");
         this.pseudo = scanner.nextLine().trim();
     }
 
+    /**
+     * Send a login attempt to the server with the pseudo linked to the client
+     */
     public void sendLogin() {
         if (this.pseudo == null)
             throw new NullPointerException("sendLogin: No login found");
         writer.println("LOGIN ".concat(this.pseudo));
     }
 
+    /**
+     * Creates an input stream to read from the server
+     *
+     * @return A BufferedReader corresponding to the inputStream of our client
+     */
     private BufferedReader createReader() {
         try {
             return new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -100,6 +133,9 @@ public class ChatClient {
         return null;
     }
 
+    /**
+     * Closes the connection
+     */
     public void closeConnection() {
         this.writer.close();
         try {
@@ -113,7 +149,9 @@ public class ChatClient {
 
 }
 
-
+/**
+ * A multi-threaded class to send messages to the server while the client still reads from the input
+ */
 class Sender implements Runnable {
     ChatClient client;
 
@@ -147,6 +185,9 @@ class Sender implements Runnable {
 }
 
 
+/**
+ * A multi-threaded class to read from the server while still writing to it
+ */
 class Receiver implements Runnable {
     ChatClient client;
 
