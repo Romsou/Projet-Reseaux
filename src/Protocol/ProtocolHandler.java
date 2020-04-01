@@ -4,6 +4,7 @@ public class ProtocolHandler {
     public static final String LOGIN_HEADER = "LOGIN";
     public static final String MESSAGE_HEADER = "MESSAGE";
     public static final String MESSAGE_FOOTER = "envoye";
+    public static final String ERROR_HEADER = "ERROR";
     public static final String ERROR_LOGIN = "ERROR LOGIN aborting chatamu protocol";
     public static final String ERROR_MESSAGE = "ERROR chatmau";
     public static final String SERVERCONNECT_HEADER = "SERVERCONNECT";
@@ -25,15 +26,18 @@ public class ProtocolHandler {
         return message.equals(MESSAGE_FOOTER);
     }
 
+    public static boolean isError(String message) {
+        return message.equals(ERROR_HEADER);
+    }
+
     public static boolean isLoginError(String[] messageParts) {
-        return messageParts[0].equals("ERROR") && messageParts[1].equals("LOGIN");
+        return isError(messageParts[0]) && isLoginHeader(messageParts[1]);
 
     }
 
     public static boolean isServerConnection(String message) {
         return message.equals(SERVERCONNECT_HEADER);
     }
-
 
     public String stripProtocolHeaders(String message) {
         String[] messageParts = message.split(" ");
