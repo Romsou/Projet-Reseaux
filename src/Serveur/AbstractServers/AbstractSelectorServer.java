@@ -90,7 +90,7 @@ public abstract class AbstractSelectorServer extends AbstractServer {
 
 
     protected boolean isLogin(SocketChannel client, String[] loginParts) {
-        return protocolHandler.isLoginHeader(loginParts[0]) && !isRegistered(client);
+        return ProtocolHandler.isLoginHeader(loginParts[0]) && !isRegistered(client);
     }
 
 
@@ -101,9 +101,11 @@ public abstract class AbstractSelectorServer extends AbstractServer {
     public void close() {
         try {
             buffer = null;
-            client.close();
+            if (client != null)
+                client.close();
+            if (selector != null)
+                selector.close();
             super.close();
-            selector.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -115,7 +117,7 @@ public abstract class AbstractSelectorServer extends AbstractServer {
      *
      * @param message Message to send
      */
-    protected void sendMessage(String message) {
+    protected void sendMessage(SocketChannel client, String message) {
         try {
             buffer.cleanBuffer();
             buffer.put(message.getBytes());
@@ -158,6 +160,14 @@ public abstract class AbstractSelectorServer extends AbstractServer {
         }
     }
 
+
+    public String addPseudoToMessage(SocketChannel client, String message) {
+        ProtocolHandler protocolHandler = new ProtocolHandler();
+        message = protocolHandler.stripProtocolHeaders(message);
+        message = clientPseudos.get(client) + ": " + message;
+        message = protocolHandler.addMessageHeaders(message);
+        return message;
+    }
 
     protected abstract void treatAcceptable(SelectionKey key) throws IOException;
 

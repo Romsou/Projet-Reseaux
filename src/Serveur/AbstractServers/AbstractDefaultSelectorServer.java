@@ -1,5 +1,7 @@
 package Serveur.AbstractServers;
 
+import Protocol.ProtocolHandler;
+
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
@@ -31,10 +33,18 @@ public abstract class AbstractDefaultSelectorServer extends AbstractSelectorServ
                 String message = buffer.convertBufferToString();
                 String[] messageParts = message.split(" ");
 
-                if (isLogin(client, messageParts))
+                //TODO: erase !
+                System.out.println(message);
+
+
+                if (isLogin(client, messageParts)) {
                     registerLogin(client, messageParts);
-                else
-                    treatMessage(key, messageParts);
+                    return;
+                } else if (ProtocolHandler.isServerConnection(message)) {
+                    System.out.println("Connexion serveur détectée");
+                    registerLogin(client, "LOGIN server".split(" "));
+                } else
+                    treatMessage(client, key, messageParts);
             }
         }
     }
@@ -51,15 +61,15 @@ public abstract class AbstractDefaultSelectorServer extends AbstractSelectorServ
      * @param messageParts A string array containing all parts of the message
      * @throws IOException
      */
-    protected void treatMessage(SelectionKey key, String[] messageParts) throws IOException {
-        if (protocolHandler.isMessage(messageParts))
+    protected void treatMessage(SocketChannel client, SelectionKey key, String[] messageParts) throws IOException {
+        if (ProtocolHandler.isMessage(messageParts))
             writeMessageToClients(String.join(" ", messageParts));
         else if (!isRegistered(client)) {
-            sendMessage("ERROR LOGIN aborting chatamu protocol\n");
+            sendMessage(client, "ERROR LOGIN aborting chatamu protocol\n");
             client.close();
             key.cancel();
         } else
-            sendMessage("ERROR chatamu\n");
+            sendMessage(client, "ERROR chatamu\n");
     }
 
 }

@@ -1,5 +1,7 @@
 package Client;
 
+import Protocol.ProtocolHandler;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -7,14 +9,14 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class ChatClient {
-    private Socket socket;
-    private BufferedReader reader;
-    private PrintWriter writer;
+    Socket socket;
+    BufferedReader reader;
+    PrintWriter writer;
 
-    private String remoteHost;
-    private int remotePort;
+    String remoteHost;
+    int remotePort;
 
-    private String pseudo;
+    String pseudo;
 
     public ChatClient(String remoteHost, int remotePort) {
         this.remoteHost = remoteHost;
@@ -29,13 +31,18 @@ public class ChatClient {
         client.getLogin();
         client.sendLogin();
 
-        Thread sender = new Thread(new Sender(client.socket, client.reader, client.writer));
-        Thread receiver = new Thread(new Receiver(client.socket, client.reader, client.writer));
+        Thread sender = new Thread(new Sender(client));
+        Thread receiver = new Thread(new Receiver(client));
 
         sender.start();
         receiver.start();
     }
 
+    /**
+     * Create the server address and handle possible errors
+     *
+     * @return An InetAddress corresponding to the distant server
+     */
     private InetAddress createAddress() {
         try {
             return InetAddress.getByName(this.remoteHost);
@@ -46,6 +53,12 @@ public class ChatClient {
         return null;
     }
 
+    /**
+     * Connect the client to the remote server
+     *
+     * @param remoteAddress The address of the server we connect to
+     * @return A socket corresponding to the conection with the server
+     */
     private Socket connectSocket(InetAddress remoteAddress) {
         try {
             return new Socket(remoteAddress, this.remotePort);
@@ -56,16 +69,27 @@ public class ChatClient {
         return null;
     }
 
+    /**
+     * Creates the address of the server and connect to it
+     */
     private void connect() {
         InetAddress remoteAddress = createAddress();
         this.socket = connectSocket(remoteAddress);
     }
 
+    /**
+     * Open input and output streams to read and write from and to the server
+     */
     private void openStreams() {
         this.reader = createReader();
         this.writer = createWriter();
     }
 
+    /**
+     * Creates an output stream to write to the server and handles possibles errors
+     *
+     * @return A PrintWriter corresponding to the output stream
+     */
     private PrintWriter createWriter() {
         try {
             return new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
@@ -76,18 +100,29 @@ public class ChatClient {
         return null;
     }
 
+    /**
+     * Ask for the user's login
+     */
     public void getLogin() {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Entrez login: ");
         this.pseudo = scanner.nextLine().trim();
     }
 
+    /**
+     * Send a login attempt to the server with the pseudo linked to the client
+     */
     public void sendLogin() {
         if (this.pseudo == null)
             throw new NullPointerException("sendLogin: No login found");
         writer.println("LOGIN ".concat(this.pseudo));
     }
 
+    /**
+     * Creates an input stream to read from the server
+     *
+     * @return A BufferedReader corresponding to the inputStream of our client
+     */
     private BufferedReader createReader() {
         try {
             return new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -98,100 +133,90 @@ public class ChatClient {
         return null;
     }
 
-    static class Sender implements Runnable {
-        Socket socket;
-        BufferedReader reader;
-        PrintWriter writer;
-
-        public Sender(Socket socket, BufferedReader reader, PrintWriter writer) {
-            this.socket = socket;
-            this.reader = reader;
-            this.writer = writer;
+    /**
+     * Closes the connection
+     */
+    public void closeConnection() {
+        this.writer.close();
+        try {
+            this.reader.close();
+            this.socket.close();
+        } catch (IOException e) {
+            System.err.println("closeConnection: Connection could not close properly");
+            System.exit(15);
         }
+    }
 
-        @Override
-        public void run() {
-            this.send();
-        }
+}
 
-        public void send() {
-            Scanner scanner = new Scanner(System.in);
-            String line;
+/**
+ * A multi-threaded class to send messages to the server while the client still reads from the input
+ */
+class Sender implements Runnable {
+    ChatClient client;
 
-            while (socket.isConnected()) {
-                System.out.print("> ");
-                if (scanner.hasNextLine()) {
-                    line = scanner.nextLine();
-                    writer.println("MESSAGE ".concat(line).concat(" envoye"));
-                    writer.flush();
-                } else {
-                    this.closeConnection();
-                    System.exit(17);
-                }
-            }
-        }
+    public Sender(ChatClient client) {
+        this.client = client;
+    }
 
-        public void closeConnection() {
-            this.writer.close();
-            try {
-                this.reader.close();
-                this.socket.close();
-            } catch (IOException e) {
-                System.err.println("closeConnection: Connection could not close properly");
-                System.exit(15);
+    @Override
+    public void run() {
+        this.send();
+    }
+
+    public void send() {
+        Scanner scanner = new Scanner(System.in);
+        String message;
+
+        while (client.socket.isConnected()) {
+            System.out.print("> ");
+            if (scanner.hasNextLine()) {
+                message = scanner.nextLine();
+                client.writer.println(new ProtocolHandler().addMessageHeaders(message));
+                client.writer.flush();
+            } else {
+                client.closeConnection();
+                System.exit(17);
             }
         }
     }
 
 
-    static class Receiver implements Runnable {
-        Socket socket;
-        BufferedReader reader;
-        PrintWriter writer;
+}
 
-        public Receiver(Socket socket, BufferedReader reader, PrintWriter writer) {
-            this.socket = socket;
-            this.reader = reader;
-            this.writer = writer;
-        }
 
-        @Override
-        public void run() {
-            this.receive();
-        }
+/**
+ * A multi-threaded class to read from the server while still writing to it
+ */
+class Receiver implements Runnable {
+    ChatClient client;
 
-        public void receive() {
-            String message;
-            while (socket.isConnected()) {
-                try {
-                    if (reader.ready()) {
-                        message = reader.readLine();
-                        System.out.print(message + "\n> ");
+    public Receiver(ChatClient client) {
+        this.client = client;
+    }
 
-                        String[] messageParts = message.split(" ");
-                        if (isErrorMessage(messageParts)) {
-                            this.closeConnection();
-                        }
-                    }
-                } catch (IOException e) {
-                    closeConnection();
-                    System.exit(16);
-                }
-            }
-        }
+    @Override
+    public void run() {
+        this.receive();
+    }
 
-        private boolean isErrorMessage(String[] messageParts) {
-            return messageParts[0].equals("ERROR") && messageParts[1].equals("LOGIN");
-        }
-
-        public void closeConnection() {
-            this.writer.close();
+    public void receive() {
+        String message;
+        while (client.socket.isConnected()) {
             try {
-                this.reader.close();
-                this.socket.close();
+                if (client.reader.ready()) {
+                    message = client.reader.readLine();
+
+                    String[] messageParts = message.split(" ");
+                    if (ProtocolHandler.isLoginError(messageParts)) {
+                        client.closeConnection();
+                        return;
+                    }
+                    System.out.print(new ProtocolHandler().stripProtocolHeaders(message) + "\n> ");
+                }
             } catch (IOException e) {
-                System.err.println("closeConnection: Connection could not close properly");
-                System.exit(15);
+                client.closeConnection();
+                System.exit(16);
             }
         }
     }

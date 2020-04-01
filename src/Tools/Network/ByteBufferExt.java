@@ -1,6 +1,8 @@
 package Tools.Network;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 
 public class ByteBufferExt {
@@ -58,4 +60,24 @@ public class ByteBufferExt {
     public byte[] array() {
         return buffer.array();
     }
+
+    public int read(SocketChannel client) {
+        try {
+            cleanBuffer();
+            return client.read(buffer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public void write(SocketChannel client) {
+        try {
+            cleanBuffer();
+            client.write(buffer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
