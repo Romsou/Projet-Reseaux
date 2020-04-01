@@ -9,14 +9,14 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class ChatClient {
-    private Socket socket;
-    private BufferedReader reader;
-    private PrintWriter writer;
+    Socket socket;
+    BufferedReader reader;
+    PrintWriter writer;
 
-    private String remoteHost;
-    private int remotePort;
+    String remoteHost;
+    int remotePort;
 
-    private String pseudo;
+    String pseudo;
 
     public ChatClient(String remoteHost, int remotePort) {
         this.remoteHost = remoteHost;
@@ -31,8 +31,8 @@ public class ChatClient {
         client.getLogin();
         client.sendLogin();
 
-        Thread sender = new Thread(new Sender(client.socket, client.reader, client.writer));
-        Thread receiver = new Thread(new Receiver(client.socket, client.reader, client.writer));
+        Thread sender = new Thread(new Sender(client));
+        Thread receiver = new Thread(new Receiver(client));
 
         sender.start();
         receiver.start();
@@ -100,100 +100,81 @@ public class ChatClient {
         return null;
     }
 
-    static class Sender implements Runnable {
-        Socket socket;
-        BufferedReader reader;
-        PrintWriter writer;
-
-        public Sender(Socket socket, BufferedReader reader, PrintWriter writer) {
-            this.socket = socket;
-            this.reader = reader;
-            this.writer = writer;
+    public void closeConnection() {
+        this.writer.close();
+        try {
+            this.reader.close();
+            this.socket.close();
+        } catch (IOException e) {
+            System.err.println("closeConnection: Connection could not close properly");
+            System.exit(15);
         }
+    }
 
-        @Override
-        public void run() {
-            this.send();
-        }
+}
 
-        public void send() {
-            Scanner scanner = new Scanner(System.in);
-            String message;
 
-            while (socket.isConnected()) {
-                System.out.print("> ");
-                if (scanner.hasNextLine()) {
-                    message = scanner.nextLine();
-                    writer.println(new ProtocolHandler().addProtocolHeaders(message));
-                    writer.flush();
-                } else {
-                    this.closeConnection();
-                    System.exit(17);
-                }
-            }
-        }
+class Sender implements Runnable {
+    ChatClient client;
 
-        public void closeConnection() {
-            this.writer.close();
-            try {
-                this.reader.close();
-                this.socket.close();
-            } catch (IOException e) {
-                System.err.println("closeConnection: Connection could not close properly");
-                System.exit(15);
+    public Sender(ChatClient client) {
+        this.client = client;
+    }
+
+    @Override
+    public void run() {
+        this.send();
+    }
+
+    public void send() {
+        Scanner scanner = new Scanner(System.in);
+        String message;
+
+        while (client.socket.isConnected()) {
+            System.out.print("> ");
+            if (scanner.hasNextLine()) {
+                message = scanner.nextLine();
+                client.writer.println(new ProtocolHandler().addProtocolHeaders(message));
+                client.writer.flush();
+            } else {
+                client.closeConnection();
+                System.exit(17);
             }
         }
     }
 
 
-    static class Receiver implements Runnable {
-        Socket socket;
-        BufferedReader reader;
-        PrintWriter writer;
+}
 
-        public Receiver(Socket socket, BufferedReader reader, PrintWriter writer) {
-            this.socket = socket;
-            this.reader = reader;
-            this.writer = writer;
-        }
 
-        @Override
-        public void run() {
-            this.receive();
-        }
+class Receiver implements Runnable {
+    ChatClient client;
 
-        public void receive() {
-            String message;
-            while (socket.isConnected()) {
-                try {
-                    if (reader.ready()) {
-                        message = reader.readLine();
+    public Receiver(ChatClient client) {
+        this.client = client;
+    }
 
-                        String[] messageParts = message.split(" ");
-                        if (isErrorMessage(messageParts)) {
-                            this.closeConnection();
-                        }
-                        System.out.print(new ProtocolHandler().stripProtocolHeaders(message) + "\n> ");
-                    }
-                } catch (IOException e) {
-                    closeConnection();
-                    System.exit(16);
-                }
-            }
-        }
+    @Override
+    public void run() {
+        this.receive();
+    }
 
-        private boolean isErrorMessage(String[] messageParts) {
-            return messageParts[0].equals("ERROR") && messageParts[1].equals("LOGIN");
-        }
-
-        public void closeConnection() {
-            this.writer.close();
+    public void receive() {
+        String message;
+        while (client.socket.isConnected()) {
             try {
-                this.reader.close();
-                this.socket.close();
+                if (client.reader.ready()) {
+                    message = client.reader.readLine();
+
+                    String[] messageParts = message.split(" ");
+                    if (ProtocolHandler.isLoginError(messageParts)) {
+                        client.closeConnection();
+                    }
+                    System.out.print(new ProtocolHandler().stripProtocolHeaders(message) + "\n> ");
+                }
             } catch (IOException e) {
-                System.err.println("closeConnection: Connection could not close properly");
-                System.exit(15);
+                client.closeConnection();
+                System.exit(16);
             }
         }
     }

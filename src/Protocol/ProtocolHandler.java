@@ -9,29 +9,31 @@ public class ProtocolHandler {
     public static final String SERVERCONNECT_HEADER = "SERVERCONNECT";
 
 
-    public static boolean isMessageHeader(String message) {
-        return message.equals(MESSAGE_HEADER);
+    public static boolean isLoginHeader(String message) {
+        return message.equals(LOGIN_HEADER);
     }
-
-
-    public static boolean isMessageFooter(String message) {
-        return message.equals(MESSAGE_FOOTER);
-    }
-
 
     public static boolean isMessage(String[] messageParts) {
         return isMessageHeader(messageParts[0]) && isMessageFooter(messageParts[messageParts.length - 1]);
     }
 
-
-    public static boolean isLoginHeader(String message) {
-        return message.equals(LOGIN_HEADER);
+    public static boolean isMessageHeader(String message) {
+        return message.equals(MESSAGE_HEADER);
     }
 
+    public static boolean isMessageFooter(String message) {
+        return message.equals(MESSAGE_FOOTER);
+    }
+
+    public static boolean isLoginError(String[] messageParts) {
+        return messageParts[0].equals("ERROR") && messageParts[1].equals("LOGIN");
+
+    }
 
     public static boolean isServerConnection(String message) {
         return message.equals(SERVERCONNECT_HEADER);
     }
+
 
     public String stripProtocolHeaders(String message) {
         String[] messageParts = message.split(" ");
