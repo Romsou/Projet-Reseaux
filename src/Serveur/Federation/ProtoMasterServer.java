@@ -13,15 +13,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class ProtoMasterServer extends ChatamuCentral {
+public class ProtoMasterServer extends ChatamuCentral implements Runnable {
     private static final String DEFAULT_CONFIG_FILE = "src//Config/pairs.cfg";
 
     private ConcurrentLinkedQueue<String> master;
     private List<InetSocketAddress> remoteAddresses;
-    private Thread slaveServer;
 
-    public ProtoMasterServer(int port) {
-        super(port);
+    public ProtoMasterServer() {
+        super(15000);
         this.master = new ConcurrentLinkedQueue<>();
         this.remoteAddresses = new LinkedList<>();
     }
@@ -51,27 +50,61 @@ public class ProtoMasterServer extends ChatamuCentral {
         String[] lineParts = line.split(" ");
         String host = lineParts[2];
         int port = Integer.parseInt(lineParts[3]);
-
-        if (lineParts[0].equals("master"))
-            slaveServer = new Thread(new SlaveServer(port));
-        else
-            remoteAddresses.add(new InetSocketAddress(host, port));
+        remoteAddresses.add(new InetSocketAddress(host, port));
     }
 
     public void init() throws IOException {
-        slaveServer.start();
-
         for (InetSocketAddress address : remoteAddresses) {
             SocketChannel server = SocketChannel.open(address);
+            System.out.println("SUCCESS");
             server.configureBlocking(false);
             server.socket().setReuseAddress(true);
-
             sendMessage(server, "SERVERCONNECT\n");
             registerChannelInSelector(server, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+            clientQueue.put(server, new ConcurrentLinkedQueue<>());
+        }
+    }
 
-            this.clientQueue.put(server, new ConcurrentLinkedQueue<>());
+    @Override
+    protected void treatAcceptable(SelectionKey key) {
+        return;
+    }
+
+    @Override
+    protected void treatReadable(SelectionKey key) throws IOException {
+        if (key.isReadable()) {
+            SocketChannel client = (SocketChannel) key.channel();
+            if (buffer.read(client) >= 0) {
+                String message = buffer.convertBufferToString();
+                System.out.println(message);
+                master.add(message);
+                broadcast(message);
+            }
+        }
+    }
+
+    @Override
+    protected void treatWritable(SelectionKey key) {
+        if (key.isValid() && key.isWritable()) {
+            SocketChannel client = (SocketChannel) key.channel();
+
+            if (clientQueue.containsKey(client) && !clientQueue.get(client).isEmpty()) {
+                String message = clientQueue.get(client).poll();
+                sendMessage(client, message);
+            }
         }
     }
 
 
+    @Override
+    public void run() {
+        this.configure();
+        try {
+            this.init();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.listen();
+//        this.close();
+    }
 }

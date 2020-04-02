@@ -35,7 +35,6 @@ public class ChatamuCentral extends AbstractDefaultSelectorServer {
 
             if (clientQueue.containsKey(client) && !clientQueue.get(client).isEmpty()) {
                 String message = clientQueue.get(client).poll();
-                System.out.println(message);
                 sendMessage(client, message);
             }
         }
@@ -43,8 +42,6 @@ public class ChatamuCentral extends AbstractDefaultSelectorServer {
 
     @Override
     protected void writeMessageToClients(String message) {
-        System.out.println("Message envoyé: " + message);
-        //message = protocolHandler.stripProtocolHeaders(message);
         broadcast(message);
     }
 

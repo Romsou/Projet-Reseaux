@@ -35,6 +35,7 @@ public abstract class AbstractServer {
             return server;
         } catch (IOException e) {
             System.err.println("createServerChannel: Error");
+            e.printStackTrace();
             this.close();
             System.exit(10);
         }
