@@ -3,11 +3,10 @@ import Serveur.Federation.ProtoMasterServer;
 import java.io.IOException;
 
 public class FederationLauncher {
-    public static void main(String[] args) throws IOException {
-        ProtoMasterServer server = new ProtoMasterServer(12347);
+    public static void main(String[] args) throws IOException, InterruptedException {
+        ProtoMasterServer server = new ProtoMasterServer();
         server.configure();
         server.init();
-        //server.printKeys();
         server.listen();
         server.close();
     }

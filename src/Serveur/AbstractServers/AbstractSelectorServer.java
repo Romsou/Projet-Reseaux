@@ -99,6 +99,7 @@ public abstract class AbstractSelectorServer extends AbstractServer {
      */
     @Override
     public void close() {
+        System.out.println("Fermeture de la connexion");
         try {
             buffer = null;
             if (client != null)

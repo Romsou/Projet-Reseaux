@@ -50,11 +50,13 @@ public class SlaveServer extends ChatamuCentral implements Runnable {
                 }
 
                 if (!masterServers.keySet().isEmpty()) {
+                    System.out.println("Il y a des  serveurs");
                     // Si on reçoit un message qui ne provient pas d' serveur maitre, on l'envoit au serveur maitre
                     if (ProtocolHandler.isMessage(messageParts) && !masterServers.containsKey(client)) {
                         for (SocketChannel masterServer : masterServers.keySet()) {
                             ProtocolHandler protocolHandler = new ProtocolHandler();
-                            message = addPseudoToMessage(client, clientPseudos.get(client));
+                            message = addPseudoToMessage(client, message);
+                            System.out.println("relais du message " + message + " au serveur");
                             sendMessage(masterServer, message);
                         }
                         return;
@@ -62,6 +64,7 @@ public class SlaveServer extends ChatamuCentral implements Runnable {
 
                     // Si on reçoit un message qui provient d'un serveur maître on le transmet à tous les clients
                     if (ProtocolHandler.isMessage(messageParts) && masterServers.containsKey(client)) {
+                        System.out.println("Message du serveur reçu: " + message);
                         broadcast(message);
                         return;
                     }

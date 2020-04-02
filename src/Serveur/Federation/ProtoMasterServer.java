@@ -1,6 +1,5 @@
 package Serveur.Federation;
 
-import Protocol.ProtocolHandler;
 import Serveur.ChatAmuCentral.ChatamuCentral;
 
 import java.io.BufferedReader;
@@ -14,15 +13,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class ProtoMasterServer extends ChatamuCentral {
+public class ProtoMasterServer extends ChatamuCentral implements Runnable {
     private static final String DEFAULT_CONFIG_FILE = "src//Config/pairs.cfg";
 
     private ConcurrentLinkedQueue<String> master;
     private List<InetSocketAddress> remoteAddresses;
 
-
-    public ProtoMasterServer(int port) {
-        super(port);
+    public ProtoMasterServer() {
+        super(15000);
         this.master = new ConcurrentLinkedQueue<>();
         this.remoteAddresses = new LinkedList<>();
     }
@@ -52,53 +50,35 @@ public class ProtoMasterServer extends ChatamuCentral {
         String[] lineParts = line.split(" ");
         String host = lineParts[2];
         int port = Integer.parseInt(lineParts[3]);
-        System.out.printf("Connexion à l'höte %s sur le port %d\n", host, port);
         remoteAddresses.add(new InetSocketAddress(host, port));
     }
 
     public void init() throws IOException {
         for (InetSocketAddress address : remoteAddresses) {
             SocketChannel server = SocketChannel.open(address);
+            System.out.println("SUCCESS");
             server.configureBlocking(false);
             server.socket().setReuseAddress(true);
-
             sendMessage(server, "SERVERCONNECT\n");
             registerChannelInSelector(server, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-
-            this.clientQueue.put(server, new ConcurrentLinkedQueue<>());
+            clientQueue.put(server, new ConcurrentLinkedQueue<>());
         }
+    }
+
+    @Override
+    protected void treatAcceptable(SelectionKey key) {
+        return;
     }
 
     @Override
     protected void treatReadable(SelectionKey key) throws IOException {
         if (key.isReadable()) {
             SocketChannel client = (SocketChannel) key.channel();
-
-            int readBytes = buffer.read(client);
-            if (readBytes > 0) {
+            if (buffer.read(client) >= 0) {
                 String message = buffer.convertBufferToString();
-                String[] messageParts = message.split(" ");
-
-                if (isLogin(client, messageParts)) {
-                    registerLogin(client, messageParts);
-                    return;
-                }
-
-                if (ProtocolHandler.isMessage(messageParts)) {
-                    master.add(addPseudoToMessage(client, message));
-                    broadcast(master.peek());
-                    return;
-                }
-
-                if (!isRegistered(client)) {
-                    //System.out.println("Message d'erreur lu: " + String.join(" ", messageParts));
-                    sendMessage(client, ProtocolHandler.ERROR_LOGIN.concat("\n"));
-                    client.close();
-                    key.cancel();
-                    return;
-                }
-
-                sendMessage(client, ProtocolHandler.ERROR_MESSAGE.concat("\n"));
+                System.out.println(message);
+                master.add(message);
+                broadcast(message);
             }
         }
     }
@@ -108,17 +88,23 @@ public class ProtoMasterServer extends ChatamuCentral {
         if (key.isValid() && key.isWritable()) {
             SocketChannel client = (SocketChannel) key.channel();
 
-            if (!clientQueue.get(client).isEmpty()) {
-                System.out.println("Message ecrit: " + clientQueue.get(client).peek());
-                sendMessage(client, clientQueue.get(client).poll());
+            if (clientQueue.containsKey(client) && !clientQueue.get(client).isEmpty()) {
+                String message = clientQueue.get(client).poll();
+                sendMessage(client, message);
             }
         }
     }
 
-    @Override
-    protected void processKeys() {
-        super.processKeys();
-        master.poll();
-    }
 
+    @Override
+    public void run() {
+        this.configure();
+        try {
+            this.init();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.listen();
+//        this.close();
+    }
 }

@@ -33,10 +33,6 @@ public abstract class AbstractDefaultSelectorServer extends AbstractSelectorServ
                 String message = buffer.convertBufferToString();
                 String[] messageParts = message.split(" ");
 
-                //TODO: erase !
-                System.out.println(message);
-
-
                 if (isLogin(client, messageParts)) {
                     registerLogin(client, messageParts);
                     return;
