@@ -70,8 +70,6 @@ public class ChatamuCentralV2 {
             String message = communicator.receive();
             String[] messageParts = message.split(" ");
 
-            //TODO: A effacer
-            System.out.println(message);
 
             // Si un serveur se connecte on l'enregistre
             if (ProtocolHandler.isServerConnection(message)) {
@@ -89,7 +87,6 @@ public class ChatamuCentralV2 {
             }
 
             if (!masters.keySet().isEmpty()) {
-                System.out.println("Il y a des  serveurs");
                 // Si on reçoit un message qui ne provient pas d' serveur maitre, on l'envoit au serveur maitre
                 if (ProtocolHandler.isMessage(messageParts) && !masters.containsKey(client)) {
                     for (SocketChannelExt master : masters.keySet()) {
@@ -103,7 +100,7 @@ public class ChatamuCentralV2 {
                 // Si on reçoit un message qui provient d'un serveur maître on le transmet à tous les clients
                 if (ProtocolHandler.isMessage(messageParts) && masters.containsKey(client)) {
                     System.out.println("Message du serveur reçu: " + message);
-                    clientQueues.broadcast(message);
+                    clientQueues.broadcast(message + "\n");
                     return;
                 }
             }
@@ -138,7 +135,7 @@ public class ChatamuCentralV2 {
         message = protocolHandler.stripProtocolHeaders(message);
         message = register.getClientPseudo(client) + ": " + message;
         message = protocolHandler.addMessageHeaders(message);
-        return message + "\n";
+        return message;
     }
 
     private void writeKey(SelectionKey key) {
@@ -147,6 +144,7 @@ public class ChatamuCentralV2 {
 
         if (clientQueues.contains(client) && !clientQueues.queueIsEmpty(client)) {
             String message = clientQueues.pollPendingMessage(client);
+            System.out.println("Envoie du message: " + message);
             communicator.send(client, message);
         }
     }
