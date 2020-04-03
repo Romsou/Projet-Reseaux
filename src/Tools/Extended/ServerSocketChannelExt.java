@@ -2,6 +2,8 @@ package Tools.Extended;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
@@ -39,6 +41,15 @@ public class ServerSocketChannelExt {
         }
     }
 
+    public void register(Selector selector, int selectionKeyMask) {
+        try {
+            serverChannel.register(selector, selectionKeyMask);
+        } catch (ClosedChannelException e) {
+            e.printStackTrace();
+            System.exit(ErrorCodes.REGISTER_FAIL.getCode());
+        }
+    }
+
     public void close() {
         try {
             this.serverChannel.close();
@@ -48,23 +59,4 @@ public class ServerSocketChannelExt {
         }
     }
 
-
 }
-
-enum ErrorCodes {
-    OPEN_FAIL(10),
-    CONFIG_FAIL(20),
-    ACCEPT_FAIL(30),
-    CLOSING_FAIL(40);
-
-    private int code;
-
-    ErrorCodes(int code) {
-        this.code = code;
-    }
-
-    public int getCode() {
-        return code;
-    }
-}
-
