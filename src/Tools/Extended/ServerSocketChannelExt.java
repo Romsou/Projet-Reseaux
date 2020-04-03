@@ -3,7 +3,7 @@ package Tools.Extended;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
-import java.nio.channels.Selector;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
@@ -41,9 +41,13 @@ public class ServerSocketChannelExt {
         }
     }
 
-    public void register(Selector selector, int selectionKeyMask) {
+    public void getServerFromKey(SelectionKey key) {
+        serverChannel = (ServerSocketChannel) key.channel();
+    }
+
+    public void register(SelectorExt selector, int selectionKeyMask) {
         try {
-            serverChannel.register(selector, selectionKeyMask);
+            serverChannel.register(selector.selector, selectionKeyMask);
         } catch (ClosedChannelException e) {
             e.printStackTrace();
             System.exit(ErrorCodes.REGISTER_FAIL.getCode());

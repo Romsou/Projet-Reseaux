@@ -1,6 +1,6 @@
 package Client;
 
-import Protocol.ProtocolHandler;
+import Tools.Protocol.ProtocolHandler;
 
 import java.io.*;
 import java.net.InetAddress;

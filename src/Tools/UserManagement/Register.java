@@ -1,21 +1,25 @@
 package Tools.UserManagement;
 
-import java.nio.channels.SocketChannel;
+import Tools.Extended.SocketChannelExt;
+
 import java.util.HashMap;
 
 public class Register {
-    private HashMap<SocketChannel, String> pseudos;
+    public HashMap<SocketChannelExt, String> pseudos;
 
     public Register() {
         pseudos = new HashMap<>();
     }
 
-    public void register(SocketChannel client, String pseudo) {
+    public void register(SocketChannelExt client, String pseudo) {
         pseudos.put(client, pseudo);
     }
 
-    public String getClientPseudo(SocketChannel client) {
+    public String getClientPseudo(SocketChannelExt client) {
         return pseudos.get(client);
     }
 
+    public boolean containsKey(SocketChannelExt client) {
+        return pseudos.containsKey(client);
+    }
 }

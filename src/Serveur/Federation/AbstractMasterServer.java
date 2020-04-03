@@ -1,7 +1,7 @@
 package Serveur.Federation;
 
-import Protocol.ProtocolHandler;
 import Tools.Extended.ByteBufferExt;
+import Tools.Protocol.ProtocolHandler;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

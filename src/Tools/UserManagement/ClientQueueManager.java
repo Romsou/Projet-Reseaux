@@ -1,24 +1,25 @@
 package Tools.UserManagement;
 
-import java.nio.channels.SocketChannel;
+import Tools.Extended.SocketChannelExt;
+
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ClientQueueManager {
-    private HashMap<SocketChannel, ConcurrentLinkedQueue<String>> pendingMessages;
+    public HashMap<SocketChannelExt, ConcurrentLinkedQueue<String>> pendingMessages;
 
     public ClientQueueManager() {
         pendingMessages = new HashMap<>();
     }
 
-    public void addClientQueue(SocketChannel client) {
+    public void addClientQueue(SocketChannelExt client) {
         if (!pendingMessages.containsKey(client))
             pendingMessages.put(client, new ConcurrentLinkedQueue());
         else
             System.out.println("Clients already has a queue");
     }
 
-    public void addMessage(SocketChannel client, String message) {
+    public void addMessage(SocketChannelExt client, String message) {
         if (pendingMessages.containsKey(client))
             pendingMessages.get(client).add(message);
         else
@@ -26,8 +27,24 @@ public class ClientQueueManager {
     }
 
     public void broadcast(String message) {
-        for (SocketChannel client : pendingMessages.keySet())
+        for (SocketChannelExt client : pendingMessages.keySet()) {
+            System.out.println("Client: " + client + "message: " + message);
             addMessage(client, message);
+        }
+    }
+
+    public boolean queueIsEmpty(SocketChannelExt client) {
+        return pendingMessages.get(client).isEmpty();
+    }
+
+    public boolean contains(SocketChannelExt client) {
+        return pendingMessages.containsKey(client);
+    }
+
+    public String pollPendingMessage(SocketChannelExt client) {
+        if (!pendingMessages.get(client).isEmpty())
+            return pendingMessages.get(client).poll();
+        return null;
     }
 
 }

@@ -1,7 +1,7 @@
 package Serveur.Federation;
 
-import Protocol.ProtocolHandler;
 import Serveur.ChatAmuCentral.ChatamuCentral;
+import Tools.Protocol.ProtocolHandler;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;

@@ -31,4 +31,12 @@ public class SelectorExt {
         return selector.selectedKeys().iterator();
     }
 
+    public void close() {
+        try {
+            selector.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(ErrorCodes.CLOSING_FAIL.getCode());
+        }
+    }
 }

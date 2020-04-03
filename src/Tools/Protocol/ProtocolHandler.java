@@ -1,4 +1,4 @@
-package Protocol;
+package Tools.Protocol;
 
 public class ProtocolHandler {
     public static final String LOGIN_HEADER = "LOGIN";
