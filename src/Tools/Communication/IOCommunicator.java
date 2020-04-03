@@ -1,4 +1,4 @@
-package Tools;
+package Tools.Communication;
 
 import Tools.Extended.ByteBufferExt;
 import Tools.Extended.ErrorCodes;

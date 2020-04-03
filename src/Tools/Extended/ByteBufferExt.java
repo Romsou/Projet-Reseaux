@@ -1,4 +1,4 @@
-package Tools.Network;
+package Tools.Extended;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
