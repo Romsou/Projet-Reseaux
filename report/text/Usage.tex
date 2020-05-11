@@ -1,1 +1,15 @@
 \section{Usage}
+
+Le programme est composé de divers modules. Il contient notamment un client, un modèle de serveur esclave / autonome, et un serveur maître central.
+
+Afin de vous faciliter la tâche dans votre correction, nous avons créé deux lanceurs:
+
+\begin{itemize}
+\item ServerLauncher vous servira à lancer les serveurs chatAmuCentral \textbf{uniquement}.
+\item Le FederationLauncher vous servira à lancer l'intégralité des serveurs esclaves et le serveur maître en fonction du contenu du fichier pairs.cfg présent dans le dossier Config.
+\end{itemize}
+
+En plus de cela, un script shell vous ait fourni afin de pouvoir lancer plus facilement les divers modules sans avoir à vous préoccuper du chemin relatif de l'exécutable java.
+Notez que l'utilisation du script shell conduira au mélange des sorties du serveurs et des clients.
+
+La meilleure manière de lancer le projet reste de l'importer dans IntelliJ Idea et de configurer un compound pour lancer le client et les serveurs désirés en même temps.

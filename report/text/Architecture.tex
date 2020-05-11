@@ -1,5 +1,5 @@
 \section{L'architecture du code}
-Il y a 4 grand types de pacquets dans le projet:
+Il y a 4 grand types de paquets dans le projet:
 \begin{itemize}
     \item Le paquet Client, qui contient un client classique pouvant se connecter aux serveurs.
     \item Le paquet Config, donnant la configuration de base(adresse ip et port) du serveur fédéré maître.
@@ -7,7 +7,7 @@ Il y a 4 grand types de pacquets dans le projet:
     \item Le paquet Tools, qui contient tout les outils utilisé par les serveurs et les clients pour communiquer.
 \end{itemize}
 
-Le fichier ServerLauncher.java lance seulement un serveur chatAmuCentral, alors que le fichier FederationLauncher.java lance le serveur maître et les serveurs esclaves conformément au contenu de config.cfg.
+Le fichier ServerLauncher.java lance seulement les serveurs chatAmuCentral présent dans pairs.cfg, alors que le fichier FederationLauncher.java lance le serveur maître et les serveurs esclaves conformément au contenu de config.cfg.
 
 \subsection{Serveur}
 Ce paquet contient tout les serveurs, que ce soit les serveurs de chat(ChatAmu), ou le serveur fédéré(Federation).
@@ -19,13 +19,17 @@ Ce paquet contient tout les outils crées pour assurer la communication entre le
 
 Communication contient la classe IOCommunicator.java, qui est chargée de la lecture et de l'écriture dans les buffers des serveurs.
 
-ConfigParser permet de récupérer les données du fichiers de config, afin de pouvoir conntecter les serveurs au serveur maître.
+ConfigParser permet de récupérer les données du fichiers de config, afin de pouvoir connecter les serveurs au serveur maître.
 
-Extended permet la gestion des erreurs du projet, via les codes d'erreur de la classe ErrorCodes.java, qui permet de lier les erreurs des autres classes à un code définit par le projet, et permettant de trouver la source de l'erreur.
+Extended contient diverses classes étendue par délégation (conformément aux bonne pratiques objet.) et permet la gestion des erreurs du projet. L'idée était entre autre d'augmenter la lisibilité du code des serveurs en délocalisant la gestion des erreurs dans des classes et méthodes spécialisées.
+Ce paquet contient également un enum contenant l'ensemble des codes erreurs du projet.
 
-Protocol contient la classe ProtocolHandler.java, qui sert à reconnaître les messages envoyés au serveur, et à différencier une connection d'un message au serveur.
+Protocol contient la classe ProtocolHandler.java, qui se charger de gérer ce qui a trait au protocole. Sa responsabilité est entre autre de reconnaître les headers, et de les manipuler.
 
-UserManagment représente la base de clients connectés au serveur. Register sert  leur connection, et ClientQueueManager permet la gestion des clients, ansi que la transmission des messages qu'ils envoient.
+UserManagment représente la base de clients connectés au serveur. Il contient les classes Register qui sert simplement de registre où sont enregistrés les clients au fur et à mesure de leurs connexions, et la classe ClientQueueManager qui contient les files de priorités des clients enregistrés
 
-\subsection{La conception}
-Il est important de remarquer que l'architecture du projet respecte les bonnes pratiques de la programmation orientée objet, c'est à dire la délégation, au lieu de l'extension.
+\section{Difficultés rencontrés}
+
+Lors de l'élaboration de l'architecture du code, de nombreux problèmes ce sont posés, notamment de refactoring, dû aux nombreux éléments similaires entre les itérations successives des serveurs.
+La gestion des erreurs en particulier fût relativement sportive dans la mesure où le nombre d'exceptions soulevés par les diverses classes du projet est assez nombreux.
+

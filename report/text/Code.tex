@@ -1,31 +1,27 @@
-\section{Le code du projet}
-Cette partie explique ce que le projet fait, les problèmes encontrés, et ce qu'on pourrait améliorer.
+\section{Vue d'ensemble du projet}
 
-\subsection{Ce que le projet peux faire}
-Pour l'instant, avec le projet, on peux
+\subsection{Features}
+
 \begin{itemize}
-	\item lire un fichier de configuration, et s'en servir pour configurer un serveur central,
-	\item faire une coloration des messages du serveur afin de faciliter leur correction,
-	\item connecter plusieurs clients en même temps,
-	\item utiliser du MultiThreading côté client afin de gérer les messages asychrones,
-	\item faire le relai des messages en fonction de leur type par les serveurs esclaves.
+	\item Configuration de l'intégralité des serveurs avec pairs.cfg.
+	\item Connexion de plusieurs clients.
+	\item Utiliser du MultiThreading côté client afin de gérer les messages asychrones,
+	\item Faire le relai des messages en fonction de leur type par les serveurs esclaves.
+	\item Utilisation du design pattern Template.
 \end{itemize}
 
-Il aurait eu été possible de faire en sorte que le serveur central accepte des connexions directes mais, cela aurait requis, pour une gestion plus facile, de créer un second thread utilisant un chatAmuCentral qui aurait accepté les connexions entrantes.
-Cette option est peu intéressante, car elle ne permet pas de se connecter directement au thread du serveur central, mais plutôt à un thread séparé qui s'en charge.
-Cela aurait donc été plus pertinent en C avec les forks de processus. Mais, java ne disposant actuellement pas de cette possibilité, cela aurait seulement compléxifié le code, le tout pour un résultat peu concluant.
+NOTE: Les connexions directes au serveur central ne sont pas autorisées. Cela aurait été possible à l'aide du multithreading en créant un thread chatAmuCentral responsable des connexions des clients, mais dans la mesure où cela revient à la même chose que de connecter un autre serveur esclave au serveur maître, l'idée n'a pas été retenue.
 
-\subsection{Les bugs}
-Il reste quelques bugs et failles dans le projet.
+\subsection{Bugs}
 
-Par exemple, il y a des trous de sécurité permettant de se connecter deux fois comme étant le même utilisateur.
-Ou encore, briser ou fermer une connexion ne retire pas les clients de la liste des clients, et peux donc créer un dédoublement des messages.
-
-\subsection{Les améliorations}
-Afin d'améliorer notre projet, on pourrait:
 \begin{itemize}
-	\item utiliser le pattern Chains of responsibility, ce qui permetterait d'améliorer la souplesse de l'implémùentation du protocole, et la réduction de la taille du code de chatAmuCentral,
+\item Aucune demande d'authenfication. Plusieurs personnes peuvent donc s'identifier sous le même login.
+\item Les utilisateurs déconnectés ne sont pas retirés de la liste des clients, ce qui peut entrainer un dédoublement des messages.
+\end{itemize}
+
+\subsection{Améliorations possibles}
+
+\begin{itemize}
+	\item utiliser le pattern Chains of responsibility, ce qui permettrait d'améliorer la souplesse de l'implémentation du protocole, et la réduction de la taille du code de chatAmuCentral,
 	\item une gestion de mots de passe chiffrés, afin d'améliorer la sécurité,
-	\item une amélioration de la gestion du registre des utilisatuers,
-	\item le rendre multi-plateforme. Pour l'instant, le serveur ne fonctionne que sur linux du à un chemin de fichier linux présent en dur dans le code.
 \end{itemize}
