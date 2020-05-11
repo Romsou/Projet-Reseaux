@@ -28,6 +28,7 @@ public class ServerSocketChannelExt {
             serverChannel.configureBlocking(false);
             serverChannel.socket().setReuseAddress(true);
         } catch (IOException e) {
+            System.out.println(localAddress);
             e.printStackTrace();
             System.exit(ErrorCodes.CONFIG_FAIL.getCode());
         }

@@ -17,10 +17,8 @@ public abstract class TemplateServer {
     public ClientQueueManager clientQueues;
     public IOCommunicator communicator;
 
-    public TemplateServer(int port) {
+    public TemplateServer() {
         serverSocketChannel = new ServerSocketChannelExt();
-        serverSocketChannel.bind(port);
-
         selector = new SelectorExt();
         register = new Register();
         clientQueues = new ClientQueueManager();
@@ -41,7 +39,6 @@ public abstract class TemplateServer {
             }
         }
     }
-
 
     private void processKey(SelectionKey key) {
         if (key.isValid() && key.isAcceptable())

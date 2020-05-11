@@ -31,10 +31,8 @@ public class ClientQueueManager {
 
 
     public void broadcast(String message) {
-        for (SocketChannelExt client : pendingMessages.keySet()) {
-            System.out.println("Client: " + client + "message: " + message);
+        for (SocketChannelExt client : pendingMessages.keySet())
             addMessage(client, message);
-        }
     }
 
 

@@ -8,12 +8,13 @@ import Tools.Protocol.ProtocolHandler;
 import java.nio.channels.SelectionKey;
 import java.util.HashMap;
 
-public class ChatamuCentral extends TemplateServer {
+public class ChatamuCentral extends TemplateServer implements Runnable {
     public HashMap<SocketChannelExt, SocketChannelExt> masters;
 
 
     public ChatamuCentral(int port) {
-        super(port);
+        super();
+        serverSocketChannel.bind(port);
         masters = new HashMap<>();
     }
 
@@ -56,7 +57,7 @@ public class ChatamuCentral extends TemplateServer {
                 if (ProtocolHandler.isMessage(messageParts) && !masters.containsKey(client)) {
                     for (SocketChannelExt master : masters.keySet()) {
                         message = addPseudoToMessage(client, message);
-                        System.out.println("relais du message " + message + " au serveur");
+                        System.out.println("\u001B[32mrelais du message " + message + " au serveur\u001B[0m");
                         communicator.send(master, message);
                     }
                     return;
@@ -64,7 +65,7 @@ public class ChatamuCentral extends TemplateServer {
 
                 // Si on reçoit un message qui provient d'un serveur maître on le transmet à tous les clients
                 if (ProtocolHandler.isMessage(messageParts) && masters.containsKey(client)) {
-                    System.out.println("Message du serveur reçu: " + message);
+                    System.out.println("\u001B[33mMessage du serveur reçu: " + message + "\u001B[0m");
                     clientQueues.broadcast(message);
                     return;
                 }
@@ -111,11 +112,16 @@ public class ChatamuCentral extends TemplateServer {
 
         if (clientQueues.contains(client) && !clientQueues.queueIsEmpty(client)) {
             String message = clientQueues.pollPendingMessage(client);
-            System.out.println("Envoie du message: " + message);
+            System.out.println("\u001B[34mEnvoie du message: " + message + "\u001B[0m\n");
             int connectionStatus = communicator.send(client, message + '\n');
 
             if (connectionStatus == ErrorCodes.SENDING_FAIL.getCode())
                 clientQueues.remove(client);
         }
+    }
+
+    @Override
+    public void run() {
+        this.listen();
     }
 }
