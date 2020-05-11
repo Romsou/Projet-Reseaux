@@ -8,9 +8,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class ClientQueueManager {
     public HashMap<SocketChannelExt, ConcurrentLinkedQueue<String>> pendingMessages;
 
+
     public ClientQueueManager() {
         pendingMessages = new HashMap<>();
     }
+
 
     public void addClientQueue(SocketChannelExt client) {
         if (!pendingMessages.containsKey(client))
@@ -19,12 +21,14 @@ public class ClientQueueManager {
             System.out.println("Clients already has a queue");
     }
 
+
     public void addMessage(SocketChannelExt client, String message) {
         if (pendingMessages.containsKey(client))
             pendingMessages.get(client).add(message);
         else
             System.out.println("client: " + client + " is not registered");
     }
+
 
     public void broadcast(String message) {
         for (SocketChannelExt client : pendingMessages.keySet()) {
@@ -33,13 +37,21 @@ public class ClientQueueManager {
         }
     }
 
+
     public boolean queueIsEmpty(SocketChannelExt client) {
         return pendingMessages.get(client).isEmpty();
     }
 
+
     public boolean contains(SocketChannelExt client) {
         return pendingMessages.containsKey(client);
     }
+
+
+    public void remove(SocketChannelExt client) {
+        this.pendingMessages.remove(client);
+    }
+
 
     public String pollPendingMessage(SocketChannelExt client) {
         if (!pendingMessages.get(client).isEmpty())

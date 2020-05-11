@@ -10,6 +10,7 @@ import java.nio.channels.SocketChannel;
 public class ServerSocketChannelExt {
     protected ServerSocketChannel serverChannel;
 
+
     public ServerSocketChannelExt() {
         try {
             serverChannel = ServerSocketChannel.open();
@@ -18,6 +19,7 @@ public class ServerSocketChannelExt {
             System.exit(ErrorCodes.OPEN_FAIL.getCode());
         }
     }
+
 
     public void bind(int port) {
         InetSocketAddress localAddress = new InetSocketAddress(port);
@@ -31,6 +33,7 @@ public class ServerSocketChannelExt {
         }
     }
 
+
     public SocketChannel accept() {
         try {
             return serverChannel.accept();
@@ -41,9 +44,11 @@ public class ServerSocketChannelExt {
         }
     }
 
+
     public void getServerFromKey(SelectionKey key) {
         serverChannel = (ServerSocketChannel) key.channel();
     }
+
 
     public void register(SelectorExt selector, int selectionKeyMask) {
         try {
@@ -53,6 +58,7 @@ public class ServerSocketChannelExt {
             System.exit(ErrorCodes.REGISTER_FAIL.getCode());
         }
     }
+
 
     public void close() {
         try {

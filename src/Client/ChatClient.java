@@ -206,12 +206,13 @@ class Receiver implements Runnable {
             try {
                 if (client.reader.ready()) {
                     message = client.reader.readLine();
-
                     String[] messageParts = message.split(" ");
+
                     if (ProtocolHandler.isLoginError(messageParts)) {
                         client.closeConnection();
                         return;
                     }
+
                     System.out.print(new ProtocolHandler().stripProtocolHeaders(message) + "\n> ");
                 }
             } catch (IOException e) {

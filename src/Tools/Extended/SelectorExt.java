@@ -8,6 +8,7 @@ import java.util.Iterator;
 public class SelectorExt {
     public Selector selector;
 
+
     public SelectorExt() {
         try {
             this.selector = Selector.open();
@@ -16,6 +17,7 @@ public class SelectorExt {
             System.exit(ErrorCodes.OPEN_FAIL.getCode());
         }
     }
+
 
     public int select() {
         try {
@@ -27,9 +29,11 @@ public class SelectorExt {
         }
     }
 
+
     public Iterator<SelectionKey> getSelectedKeysIterator() {
         return selector.selectedKeys().iterator();
     }
+
 
     public void close() {
         try {
@@ -39,4 +43,6 @@ public class SelectorExt {
             System.exit(ErrorCodes.CLOSING_FAIL.getCode());
         }
     }
+
+
 }

@@ -29,4 +29,12 @@ public class ConfigParser {
 
         return fileContent.split("\n");
     }
+
+    public void close() {
+        try {
+            configFile.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

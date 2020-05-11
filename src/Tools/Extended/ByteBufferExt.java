@@ -57,9 +57,11 @@ public class ByteBufferExt {
         buffer.clear();
     }
 
+
     public byte[] array() {
         return buffer.array();
     }
+
 
     public int read(SocketChannel client) {
         try {
@@ -70,6 +72,7 @@ public class ByteBufferExt {
         }
         return 0;
     }
+
 
     public void write(SocketChannel client) {
         try {

@@ -21,15 +21,16 @@ public class IOCommunicator {
         return buffer.convertBufferToString();
     }
 
-    public void send(SocketChannelExt client, String message) {
+    public int send(SocketChannelExt client, String message) {
         buffer.cleanBuffer();
         buffer.put(message.getBytes());
         buffer.flip();
         try {
             client.socketChannel.write(buffer.getBuffer());
         } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(ErrorCodes.SENDING_FAIL.getCode());
+            System.out.println("Remote connection lost");
+            return ErrorCodes.SENDING_FAIL.getCode();
         }
+        return 0;
     }
 }
