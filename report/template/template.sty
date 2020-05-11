@@ -1,0 +1,30 @@
+\ProvidesPackage{template}
+
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{enumitem}
+\usepackage[svgnames]{xcolor}
+\usepackage{fancyhdr}
+\usepackage{geometry}
+\usepackage{sectsty}
+
+
+% Numérotation du document
+\renewcommand{\thesection}{\arabic{section}}
+
+% Définition des listes
+\frenchbsetup{StandardLists=true}
+\setitemize{font=\color{SeaGreen}}
+
+% Définition de l'indentation
+\setlength{\parindent}{0cm}
+
+% Marges du document
+\geometry{margin=2.5cm, vmargin=2.5cm}
+
+% Couleur des titres
+\sectionfont{\color{blue}}
+\subsectionfont{\color{blue}}
+\subsubsectionfont{\color{blue}}
