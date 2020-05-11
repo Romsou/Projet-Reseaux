@@ -22,7 +22,7 @@ public class ConfigParser {
 
         try {
             while ((line = configFile.readLine()) != null)
-                fileContent += line;
+                fileContent += line + "\n";
         } catch (IOException e) {
             e.printStackTrace();
         }
