@@ -1,10 +1,10 @@
-import Serveur.Federation.ProtoMasterServer;
+import Serveur.Federation.MasterServer;
 
 import java.io.IOException;
 
 public class FederationLauncher {
     public static void main(String[] args) throws IOException, InterruptedException {
-        ProtoMasterServer server = new ProtoMasterServer();
+        MasterServer server = new MasterServer();
         server.configure();
         server.init();
         server.listen();

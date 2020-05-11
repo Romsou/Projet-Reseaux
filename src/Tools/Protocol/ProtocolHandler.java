@@ -1,4 +1,4 @@
-package Protocol;
+package Tools.Protocol;
 
 public class ProtocolHandler {
     public static final String LOGIN_HEADER = "LOGIN";
@@ -14,30 +14,36 @@ public class ProtocolHandler {
         return message.equals(LOGIN_HEADER);
     }
 
+
     public static boolean isMessage(String[] messageParts) {
         return isMessageHeader(messageParts[0]) && isMessageFooter(messageParts[messageParts.length - 1]);
     }
+
 
     public static boolean isMessageHeader(String message) {
         return message.equals(MESSAGE_HEADER);
     }
 
+
     public static boolean isMessageFooter(String message) {
         return message.equals(MESSAGE_FOOTER);
     }
+
 
     public static boolean isError(String message) {
         return message.equals(ERROR_HEADER);
     }
 
+
     public static boolean isLoginError(String[] messageParts) {
         return isError(messageParts[0]) && isLoginHeader(messageParts[1]);
-
     }
+
 
     public static boolean isServerConnection(String message) {
         return message.equals(SERVERCONNECT_HEADER);
     }
+
 
     public String stripProtocolHeaders(String message) {
         String[] messageParts = message.split(" ");
@@ -50,7 +56,10 @@ public class ProtocolHandler {
             return message;
     }
 
+
     public String addMessageHeaders(String message) {
         return "MESSAGE ".concat(message).concat(" envoye");
     }
+
+
 }
