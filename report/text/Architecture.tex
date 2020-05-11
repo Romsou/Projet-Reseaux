@@ -1,0 +1,29 @@
+\section{L'architecture du code}
+Il y a 4 grand types de pacquets dans le projet:
+\begin{itemize}
+    \item Le paquet Client, qui contient un client classique pouvant se connecter aux serveurs.
+    \item Le paquet Config, donnant la configuration de base(adresse ip et port) du serveur fédéré maître.
+    \item Le paquet Serveur, qui contient le code des serveurs.
+    \item Le paquet Tools, qui contient tout les outils utilisé par les serveurs et les clients pour communiquer.
+\end{itemize}
+
+\subsection{Serveur}
+Ce paquet contient tout les serveurs, que ce soit les serveurs de chat(ChatAmu), ou le serveur fédéré(Federation).
+
+Tout les fichiers de ce paquet étendent la classe abstraite TemplateServer, qui correspond à la base d'un serveur, sauf la gestion des clés de connections, qui sont précisé par les sous classes, ChatAmuCentral.java et MasterServer.java.
+
+\subsection{Tools}
+Ce paquet contient tout les outils crées pour assurer la communication entre les serveurs et les clients.
+
+Communication contient la classe IOCommunicator.java, qui est chargée de la lecture et de l'écriture dans les buffers des serveurs.
+
+ConfigParser permet de récupérer les données du fichiers de config, afin de pouvoir conntecter les serveurs au serveur maître.
+
+Extended permet la gestion des erreurs du projet, via les codes d'erreur de la classe ErrorCodes.java, qui permet de lier les erreurs des autres classes à un code définit par le projet, et permettant de trouver la source de l'erreur.
+
+Protocol contient la classe ProtocolHandler.java, qui sert à reconnaître les messages envoyés au serveur, et à différencier une connection d'un message au serveur.
+
+UserManagment représente la base de clients connectés au serveur. Register sert  leur connection, et ClientQueueManager permet la gestion des clients, ansi que la transmission des messages qu'ils envoient.
+
+\subsection{La conception}
+Il est important de remarquer que l'architecture du projet respecte les bonnes pratiques de la programmation orientée objet, c'est à dire la délégation, au lieu de l'extension.
